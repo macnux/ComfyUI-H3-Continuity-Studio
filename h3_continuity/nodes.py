@@ -356,6 +356,27 @@ class H3C_SaveSegment(io.ComfyNode):
             played = (segment.timeline or {}).get("played")
             if played is not None:
                 entry["played"] = played
+            soundtrack = (segment.timeline or {}).get("soundtrack", ())
+            if soundtrack and images is not None:
+                try:
+                    from .audio_tracks import file_path
+                    from comfy_extras.nodes_audio import load as load_audio
+                    played_before = sum(store.played_frames(s) for s in manifest["segments"])
+                    exp_frames = timing.frames_at_fps(played if played is not None else entry["frames"], fps)
+                    start_sec = played_before / fps
+                    end_sec = (played_before + exp_frames) / fps
+                    for clip in soundtrack:
+                        c_start = clip.get("start", 0)
+                        c_dur = clip.get("duration", 0)
+                        if start_sec < c_start + c_dur and end_sec > c_start:
+                            src_wave, src_rate = load_audio(file_path(clip["file"]))
+                            src_start_sample = int((clip.get("source_start", 0) + max(0.0, start_sec - c_start)) * src_rate)
+                            seg_samples = int(exp_frames / fps * src_rate)
+                            waveform = src_wave[:, src_start_sample:src_start_sample + seg_samples]
+                            sample_rate = src_rate
+                            break
+                except Exception:
+                    pass
             if images is not None:
                 _write_video(folder, entry, images, fps, crf, waveform, sample_rate, notes, color_space)
             store.save_segment(folder, entry, video, audio_latent, waveform)
@@ -374,7 +395,7 @@ class H3C_SaveSegment(io.ComfyNode):
                     f"Sequence: {count} {_plural(count, 'segment')}, {store.sequence_seconds(manifest, spliced):.1f} s.")
             if archived:
                 info += f" Moved {_plural(len(archived), 'segment')} {', '.join(map(str, archived))} to takes/."
-            if (write_full_video and not segment.timeline) or segment.timeline_complete:
+            if (write_full_video and not segment.timeline) or segment.timeline_complete or bool((segment.timeline or {}).get("soundtrack")):
                 info += " " + ((segment.timeline or {})['export_error'] if (segment.timeline or {}).get('export_error') else
                                rebuild_full_video(folder, sequence.name, manifest, crf, spliced,
                                                  (segment.timeline or {}).get("soundtrack", ()), managed_owner=sequence_owner(cls),
@@ -422,7 +443,7 @@ class H3C_SaveSegment(io.ComfyNode):
                     f"({timing.seconds(played):.2f} s).")
             if earlier is not None:
                 info += " Moved its earlier take to takes/."
-            if segment.timeline_complete:
+            if segment.timeline_complete or bool(record.get("soundtrack")):
                 info += " " + (record['export_error'] if record.get('export_error') else
                                rebuild_full_video(folder, sequence.name, manifest, crf, bridges.spliced(folder, manifest, keys),
                                                  record.get("soundtrack", ()), managed_owner=sequence_owner(cls),

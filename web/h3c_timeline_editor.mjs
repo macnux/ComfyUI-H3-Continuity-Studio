@@ -2,26 +2,26 @@
 // Plain DOM without ComfyUI imports; the host object connects it to the node.
 import { MentionCard, MentionLayer } from './h3c_mentions.mjs?v=20261011-reference-preparation-1';
 import { promptSections, promptShots, writePromptSections } from './h3c_prompt_sections.mjs?v=20261010-reference-workspace-1';
-import * as model from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
-import { AudioLanes } from './h3c_audio_lanes.mjs?v=20261103-replacement-bridges-1';
+import * as model from './h3c_timeline_model.mjs?v=20261106-safe-duration-3';
+import { AudioLanes } from './h3c_audio_lanes.mjs?v=20261106-safe-duration-3';
 import { shotFrames, frameTargets, syncTargets, acceptedGuideFrames, endpointGuide, adoptEndpointGuides } from './h3c_shot_preview.mjs?v=20261105-still-quality-1';
-import {FrameImages, targetLabel, imageDrop} from './h3c_frame_images.mjs?v=20261105-still-quality-1';
-import { splitBox, splitTiming } from './h3c_shot_split.mjs?v=20261104-shot-split-only-1';
+import { FrameImages, targetLabel, imageDrop } from './h3c_frame_images.mjs?v=20261105-still-quality-1';
+import { splitBox, splitTiming } from './h3c_shot_split.mjs?v=20261106-safe-duration-3';
 import { fillReferenceSwitches } from './h3c_reference_switches.mjs?v=20261010-image-descriptions-1';
 import { ReferenceReplacements } from './h3c_reference_replacements.mjs?v=20261011-reference-preparation-1';
 import { fillPicturePicker, mentionedReferences, referenceChip } from './h3c_reference_pictures.mjs?v=20261010-reference-workspace-1';
-import { CastPage } from './h3c_cast.mjs?v=20261103-replacement-bridges-1';
+import { CastPage } from './h3c_cast.mjs?v=20261106-safe-duration-3';
 import { PicturesPanel, highestSlot } from './h3c_pictures.mjs?v=20261011-reference-preparation-1';
-import { CheckPanel } from './h3c_check.mjs?v=20261104-check-holds-1';
-import { BridgePanel, bridgeLine } from './h3c_bridges.mjs?v=20261103-replacement-bridges-1';
-import { DialoguePanel } from './h3c_dialogue.mjs?v=20261104-dialogue-key-1';
+import { CheckPanel } from './h3c_check.mjs?v=20261106-safe-duration-3';
+import { BridgePanel, bridgeLine } from './h3c_bridges.mjs?v=20261106-safe-duration-3';
+import { DialoguePanel } from './h3c_dialogue.mjs?v=20261106-safe-duration-3';
 import { ChainSettings } from './h3c_chain_settings.mjs?v=20261104-chain-settings-1';
 import { exportedVideo } from './h3c_partial_video.mjs?v=20261104-partial-video-1';
-import { MAX_TAKES, TakesPanel, followNote, renderLabel } from './h3c_takes.mjs?v=20261104-take-marks-2';
+import { MAX_TAKES, TakesPanel, followNote, renderLabel } from './h3c_takes.mjs?v=20261106-safe-duration-3';
 
 const STYLE_ID = 'h3ct-style';
 const PANEL_HEIGHT = 470;
-const JOIN_LABELS = {continue: 'Continue', transition: 'Transition', cut: 'Cut', new_scene: 'New scene'};
+const JOIN_LABELS = { continue: 'Continue', transition: 'Transition', cut: 'Cut', new_scene: 'New scene' };
 // Untargeted guides need unique shot numbers; numbers from here on are free frame guides, never prompt shots.
 const FREE_GUIDE = 1000;
 const CSS = `
@@ -262,7 +262,7 @@ function group(label, ...controls) {
 }
 
 function percent(fraction) {
-  return `${(fraction * 100).toFixed(3)}%`;
+  return `${((Number(fraction) || 0) * 100).toFixed(3)}%`;
 }
 
 function injectStyle() {
@@ -327,7 +327,7 @@ export class TimelineEditor {
     this.feedbackInput.setAttribute('aria-label', 'Story feedback');
     this.editMessage = el('div', 'h3ct-hint');
     this.feedbackButton = button('Apply feedback', 'Keep the existing story while incorporating this suggestion',
-      () => this.editStory({kind: 'feedback', text: this.feedbackInput.value, box: this.box()?.id}));
+      () => this.editStory({ kind: 'feedback', text: this.feedbackInput.value, box: this.box()?.id }));
     this.feedbackEl.append(el('summary', null, 'Story feedback'), this.feedbackInput,
       this.feedbackButton, this.editMessage);
 
@@ -648,11 +648,11 @@ export class TimelineEditor {
 
   inspect(target) {
     // Track stays in the borrowed Timeline region; editor.root stays on the graph node.
-    this.trackEl.dispatchEvent(new CustomEvent('h3c-inspect', {bubbles: true, detail: target}));
+    this.trackEl.dispatchEvent(new CustomEvent('h3c-inspect', { bubbles: true, detail: target }));
   }
 
   inspectClip() {
-    this.inspect({kind: 'clip', box: this.box()?.id ?? null});
+    this.inspect({ kind: 'clip', box: this.box()?.id ?? null });
   }
 
   box() {
@@ -670,11 +670,11 @@ export class TimelineEditor {
   connectedSets() {
     const connected = this.host.connected();
     return {
-      images: new Set(connected.images.filter(ref=>!ref.problem).map((ref) => ref.name)),
-      audios: new Set(connected.audios.filter(ref=>!ref.problem).map((ref) => ref.name)),
-      videos: new Set((connected.videos ?? []).filter(ref=>!ref.problem).map(ref => ref.name)),
-      video_audios: new Set((connected.video_audios ?? []).filter(ref=>!ref.problem).map(ref => ref.name)),
-      problems:new Map(Object.values(connected).flat().filter(ref=>ref.problem).map(ref=>[ref.name,ref.problem])),
+      images: new Set(connected.images.filter(ref => !ref.problem).map((ref) => ref.name)),
+      audios: new Set(connected.audios.filter(ref => !ref.problem).map((ref) => ref.name)),
+      videos: new Set((connected.videos ?? []).filter(ref => !ref.problem).map(ref => ref.name)),
+      video_audios: new Set((connected.video_audios ?? []).filter(ref => !ref.problem).map(ref => ref.name)),
+      problems: new Map(Object.values(connected).flat().filter(ref => ref.problem).map(ref => [ref.name, ref.problem])),
       conflicts: new Set([...connected.images, ...connected.audios].filter(ref => ref.conflict).map(ref => ref.name)),
     };
   }
@@ -740,21 +740,23 @@ export class TimelineEditor {
 
   // The parts the Studio places in its own layout.
   regions() {
-    return {summary: this.summaryEl, add: this.addButton, next: this.renderNextButton, all: this.renderButton,
+    return {
+      summary: this.summaryEl, add: this.addButton, next: this.renderNextButton, all: this.renderButton,
       open: this.fullLink, download: this.fullDownloadLink, feedback: this.feedbackEl, references: this.referencesEl,
       pictures: this.pictures.root, refmods: this.refmodsEl, lane: this.laneEl, hint: this.hintEl, panel: this.panelEl,
       cast: this.castEl, sharedPrompt: this.sharedRoot, clipTakes: this.takes.root,
       bridgeTakes: this.takes.bridgeRoot, continuity: this.checks.root, bridgeSettings: this.bridges.root,
       audioSettings: this.audioLanes.settings, dialogueSettings: this.dialogue.root, timedTextSettings: this.audioLanes.textSettings,
       audioHeader: this.audioLanes.header, timedTextHeader: this.audioLanes.textHeader,
-      stillPrompts: this.frameImages.preparation.root, chainSettings: this.chain.root};
+      stillPrompts: this.frameImages.preparation.root, chainSettings: this.chain.root
+    };
   }
 
   // Upload… beside a frame picker: the new picture becomes the `end` frame of the box chosen when it was pressed.
   uploadFrame(end) {
     const box = this.box();
     if (!box) return;
-    this.frameImages.open(box.id, {kind:end});
+    this.frameImages.open(box.id, { kind: end });
     this.frameImages.chooseUpload();
   }
 
@@ -762,7 +764,7 @@ export class TimelineEditor {
   dropGuide(file, target) {
     const box = this.box();
     if (!box) return;
-    target = typeof target === 'string' ? {kind: target} : target;
+    target = typeof target === 'string' ? { kind: target } : target;
     this.frameImages.open(box.id, target);
     this.frameImages.upload(file, box.id, target).catch(error => this.frameImages.note(error.message));
   }
@@ -772,7 +774,7 @@ export class TimelineEditor {
   load() {
     this.replacements.close();
     this.state = model.parseState(this.host.read());
-    syncTargets(this.state,this.host.context());
+    syncTargets(this.state, this.host.context());
     if (this.adoptEndpoints()) this.host.write(model.serialize(this.state));
     this.selected = Math.min(this.selected, Math.max(0, this.state.boxes.length - 1));
     this.stale = true;
@@ -791,7 +793,7 @@ export class TimelineEditor {
   contextChanged() {
     const before = model.serialize(this.state);
     model.normalize(this.state, this.host.context());
-    syncTargets(this.state,this.host.context());
+    syncTargets(this.state, this.host.context());
     const after = model.serialize(this.state);
     if (after !== before) this.host.write(after);
     this.render();
@@ -822,7 +824,7 @@ export class TimelineEditor {
   commit(renderPanel = true) {
     this.adoptEndpoints();
     model.normalize(this.state, this.host.context());
-    syncTargets(this.state,this.host.context());
+    syncTargets(this.state, this.host.context());
     this.stale = true;
     this.followNote = '';
     this.host.write(model.serialize(this.state));
@@ -881,7 +883,7 @@ export class TimelineEditor {
 
   // Queues takes using the selected clip's seed mode; stop if its identity or position changes.
   async queueBox(count = 1) {
-    const outcome = {requested:count, queued:0, remaining:count, retryable:false};
+    const outcome = { requested: count, queued: 0, remaining: count, retryable: false };
     if (!this.box() || this.queuing || this.queueBatch || this.seedInput?.validity?.valid === false) return outcome;
     const index = this.selected, id = this.box().id;
     this.queueBatch = true;
@@ -889,15 +891,17 @@ export class TimelineEditor {
       for (let run = 0; run < count; run += 1) {
         const box = this.state.boxes[index];
         if (box?.id !== id || this.box()?.id !== id) {
-          this.setStatus({ok:false,error:`Queued ${outcome.queued} of ${count} takes. The selected clip changed; ${outcome.remaining} takes were not queued.`});
+          this.setStatus({ ok: false, error: `Queued ${outcome.queued} of ${count} takes. The selected clip changed; ${outcome.remaining} takes were not queued.` });
           return outcome;
         }
         if (!await this.submit(1, index + 1)) {
           outcome.retryable = this.state.boxes[index]?.id === id && this.box()?.id === id;
           const detail = this.status?.error ?? 'Could not queue this take.';
-          if (outcome.queued > 0) this.setStatus({ok:false,error:`Queued ${outcome.queued} of ${count} takes. ${outcome.retryable
-            ? `${outcome.remaining} takes remain; Generate retries the remaining takes.`
-            : `The selected clip changed; ${outcome.remaining} takes were not queued.`} ${detail}`});
+          if (outcome.queued > 0) this.setStatus({
+            ok: false, error: `Queued ${outcome.queued} of ${count} takes. ${outcome.retryable
+              ? `${outcome.remaining} takes remain; Generate retries the remaining takes.`
+              : `The selected clip changed; ${outcome.remaining} takes were not queued.`} ${detail}`
+          });
           return outcome;
         }
         outcome.queued += 1;
@@ -1062,7 +1066,7 @@ export class TimelineEditor {
     if (!url) return;
     const link = el('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener';
     const image = el('img'); image.alt = label;
-    image.addEventListener('load', () => { link.append(image); container.prepend(link); }, {once: true});
+    image.addEventListener('load', () => { link.append(image); container.prepend(link); }, { once: true });
     image.src = url;
   }
 
@@ -1078,12 +1082,12 @@ export class TimelineEditor {
     const connected = this.host.connected();
     fillReferenceSwitches(this.referencesEl, this.referenceOptions(), this.state.disabled_refs ?? [],
       (names, enabled) => this.setReferencesEnabled(names, enabled), {
-        replace:ref=>this.replacements.open(ref.name),restore:ref=>this.replacements.restore(ref.name),preview:ref=>this.replacements.preview(ref),
-        clearDescriptions:this.host.describeImage?()=>this.replacements.clearAll():undefined,
-      });
+      replace: ref => this.replacements.open(ref.name), restore: ref => this.replacements.restore(ref.name), preview: ref => this.replacements.preview(ref),
+      clearDescriptions: this.host.describeImage ? () => this.replacements.clearAll() : undefined,
+    });
     const occupied = new Set([...connected.images, ...connected.audios].filter(ref => !ref.refmod).map(ref => ref.name));
     const images = Math.max(99, highestSlot(this.state) + 1);
-    const availableSlots = kind => Array.from({length: kind === 'audio' ? 3 : images}, (_, i) => `${kind === 'audio' ? 'audio' : 'image'}${i + 1}`);
+    const availableSlots = kind => Array.from({ length: kind === 'audio' ? 3 : images }, (_, i) => `${kind === 'audio' ? 'audio' : 'image'}${i + 1}`);
     const freeSlot = kind => availableSlots(kind).find(slot => !occupied.has(slot) && !refs.some(ref => ref.slot === slot));
     const changed = () => { this.commit(); this.renderRefmods(); };
     const actions = el('div', 'h3ct-row');
@@ -1091,8 +1095,10 @@ export class TimelineEditor {
       const choice = choices.find(item => freeSlot(item.kind));
       if (!choice) return;
       this.state.refmods ??= [];
-      this.state.refmods.push({slot: freeSlot(choice.kind), name: choice.name, member: choice.member,
-        kind: choice.kind, strength: 1});
+      this.state.refmods.push({
+        slot: freeSlot(choice.kind), name: choice.name, member: choice.member,
+        kind: choice.kind, strength: 1
+      });
       changed();
     });
     add.disabled = !choices.some(item => freeSlot(item.kind));
@@ -1123,7 +1129,7 @@ export class TimelineEditor {
         const item = choices.find(item => key(item) === select.value);
         const nextSlot = (item.kind === 'audio') === ref.slot.startsWith('audio') ? ref.slot : freeSlot(item.kind);
         if (!nextSlot) { select.value = key(ref); this.refmodMessage.textContent = 'No matching reference slot is free.'; return; }
-        Object.assign(ref, {name: item.name, member: item.member, kind: item.kind, slot: nextSlot});
+        Object.assign(ref, { name: item.name, member: item.member, kind: item.kind, slot: nextSlot });
         delete ref.description;
         changed();
       });
@@ -1168,7 +1174,7 @@ export class TimelineEditor {
     if (ok && !this.stale) summary += ` · ${this.status.message}`;
     this.summaryEl.textContent = summary;
     this.renderButton.textContent = count && !remaining ? '✓ All rendered' : `▶ Render ${remaining} remaining`;
-    this.renderButton.disabled = this.host.hasVideo?.()===false || !remaining || this.queuing || !this.seedInput.validity.valid;
+    this.renderButton.disabled = this.host.hasVideo?.() === false || !remaining || this.queuing || !this.seedInput.validity.valid;
     this.renderButton.title = remaining
       ? `Queue ${remaining} run${remaining === 1 ? '' : 's'}, one per ${what} that is not rendered yet`
       : `Every ${what} is rendered`;
@@ -1209,7 +1215,7 @@ export class TimelineEditor {
     const refs = this.host.connected();
     const connected = [...refs.images, ...refs.audios, ...(refs.videos ?? []), ...(refs.video_audios ?? [])];
     return [...connected, ...(this.state.refmods ?? []).filter(ref => !connected.some(source => source.name === ref.slot))
-      .map(ref => ({name: ref.slot, title: ref.name, refmod: true}))];
+      .map(ref => ({ name: ref.slot, title: ref.name, refmod: true }))];
   }
 
   setReferencesEnabled(names, enabled) {
@@ -1253,7 +1259,7 @@ export class TimelineEditor {
       item.append(el('span', 'h3ct-boxlabel',
         `${index > 0 && box.cut ? '✂ ' : ''}#${index + 1} · ${model.seconds(box.frames)} s${mark}`));
       item.title = [`Clip ${index + 1}: ${model.lengthLabel(this.state, index, context)}`, info.mode, status?.reason,
-        box.prompt.trim().slice(0, 160), ...info.problems].filter(Boolean).join('\n');
+      box.prompt.trim().slice(0, 160), ...info.problems].filter(Boolean).join('\n');
       const handle = el('div', 'h3ct-handle');
       handle.title = 'Drag to change the length';
       handle.addEventListener('pointerdown', (event) => this.resizeStart(event, index));
@@ -1305,7 +1311,7 @@ export class TimelineEditor {
         this.setTab('box');
         this.bridgeDetails.open = true;
         // From the track, which stays in the page when select() draws new marks.
-        this.trackEl.dispatchEvent(new CustomEvent('h3c-show-page', {bubbles: true, detail: {page: 'box'}}));
+        this.trackEl.dispatchEvent(new CustomEvent('h3c-show-page', { bubbles: true, detail: { page: 'box' } }));
         this.select(index);
       });
       this.trackEl.append(mark);
@@ -1327,7 +1333,7 @@ export class TimelineEditor {
   }
 
   // The Studio sets how wide the lane draws (zoom, 1 = fit the panel).
-  setLaneView({zoom = 1} = {}) {
+  setLaneView({ zoom = 1 } = {}) {
     if (zoom === this.zoom) return;
     this.zoom = zoom;
     this.laneEl.style.setProperty('--h3ct-zoom', String(zoom));
@@ -1361,11 +1367,11 @@ export class TimelineEditor {
     this.renderReferenceOverview();
     this.renderMemory();
     const frames = connected.images.filter(ref => !ref.refmod);
-    fillPicturePicker(this.firstPicker, {value: box.first, refs: frames, label: 'First frame'}, (value) => {
+    fillPicturePicker(this.firstPicker, { value: box.first, refs: frames, label: 'First frame' }, (value) => {
       this.box().first = value;
       this.commit();
     });
-    fillPicturePicker(this.lastPicker, {value: box.last, refs: frames, label: 'Last frame'}, (value) => {
+    fillPicturePicker(this.lastPicker, { value: box.last, refs: frames, label: 'Last frame' }, (value) => {
       this.box().last = value;
       this.commit();
     });
@@ -1427,7 +1433,7 @@ export class TimelineEditor {
       source.addEventListener('change', () => { memory.box = source.value; memory.frame = 0; this.commit(); });
       const seconds = el('input', 'h3ct-number');
       seconds.type = 'number'; seconds.min = '0'; seconds.step = String(1 / model.FPS);
-      seconds.value = (memory.frame / model.FPS).toFixed(3);
+      seconds.value = (Number(memory.frame ?? 0) / (model.FPS || 24)).toFixed(3);
       seconds.setAttribute('aria-label', 'Remembered time in source clip, seconds');
       seconds.addEventListener('change', () => {
         const frame = Math.round(Number(seconds.value) * model.FPS);
@@ -1455,7 +1461,7 @@ export class TimelineEditor {
     }
     const add = button('Remember a moment', 'Add a 5-frame view from an earlier rendered box (maximum 3)', () => {
       box.memories ??= [];
-      box.memories.push({box: this.state.boxes[this.selected - 1].id, frame: 0, label: ''});
+      box.memories.push({ box: this.state.boxes[this.selected - 1].id, frame: 0, label: '' });
       this.commit();
     });
     add.disabled = this.selected === 0 || (box.memories?.length ?? 0) >= 3;
@@ -1476,8 +1482,8 @@ export class TimelineEditor {
     root.replaceChildren();
     const box = this.box();
     if (!box) return;
-    const used = new Set([box.prompt,this.state.prompt].flatMap(text=>model.mentions(text??'').map(ref=>ref.name)));
-    const connected = this.host.connected().images.filter(ref=>used.has(ref.name));
+    const used = new Set([box.prompt, this.state.prompt].flatMap(text => model.mentions(text ?? '').map(ref => ref.name)));
+    const connected = this.host.connected().images.filter(ref => used.has(ref.name));
     const byName = new Map(connected.map(ref => [ref.name, ref]));
     const sections = promptSections(box.prompt) ?? [];
     const definitions = sections.find(section => section.key === 'subject_definitions')?.fields ?? [];
@@ -1527,28 +1533,28 @@ export class TimelineEditor {
     this.sectionMarks = [];
     this.structureEl.replaceChildren();
     // Keep still controls connected so a refresh cannot cancel a mouse click or blur an edit.
-    for(const child of [...this.previewsEl.children]) if(child!==this.frameImages.root) child.remove();
+    for (const child of [...this.previewsEl.children]) if (child !== this.frameImages.root) child.remove();
     const shots = shotFrames(this.state, this.selected, this.host.context());
     const selected = shots.find(s => s.shot === this.selectedShot) ?? shots[0];
     this.selectedShot = selected.shot;
     this.frameImages.open(this.box().id, this.frameImages.boxId === this.box().id
-      ? this.frameImages.target : {kind:'shot',shot:selected.shot});
-    const endpoints=el('div','h3ct-targets'),interior=el('div','h3ct-targets interior');
-    endpoints.setAttribute('aria-label','First and last frames');interior.setAttribute('aria-label','Interior shots');
-    for(const {target,frame} of frameTargets(this.state,this.selected,this.host.context())) {
-      const pick=button('',`${targetLabel(target)}, frame ${frame}`,()=>{
-        this.selectedShot=target.shot??1;this.frameImages.open(this.box().id,target);this.renderTrack();this.renderPanel();
-      },'h3ct-target');
-      pick.dataset.target=target.kind==='shot'?`shot:${target.shot}`:target.kind;
-      pick.setAttribute('aria-label',`${targetLabel(target)} image`);
-      pick.setAttribute('aria-pressed',String(this.frameImages.target.kind===target.kind&&this.frameImages.target.shot===target.shot));
-      this.fillStill(pick,this.box(),target,targetLabel(target));
-      imageDrop(pick,file=>{pick.click();this.dropGuide(file,target);});
-      (target.kind==='shot'?interior:endpoints).append(pick);
+      ? this.frameImages.target : { kind: 'shot', shot: selected.shot });
+    const endpoints = el('div', 'h3ct-targets'), interior = el('div', 'h3ct-targets interior');
+    endpoints.setAttribute('aria-label', 'First and last frames'); interior.setAttribute('aria-label', 'Interior shots');
+    for (const { target, frame } of frameTargets(this.state, this.selected, this.host.context())) {
+      const pick = button('', `${targetLabel(target)}, frame ${frame}`, () => {
+        this.selectedShot = target.shot ?? 1; this.frameImages.open(this.box().id, target); this.renderTrack(); this.renderPanel();
+      }, 'h3ct-target');
+      pick.dataset.target = target.kind === 'shot' ? `shot:${target.shot}` : target.kind;
+      pick.setAttribute('aria-label', `${targetLabel(target)} image`);
+      pick.setAttribute('aria-pressed', String(this.frameImages.target.kind === target.kind && this.frameImages.target.shot === target.shot));
+      this.fillStill(pick, this.box(), target, targetLabel(target));
+      imageDrop(pick, file => { pick.click(); this.dropGuide(file, target); });
+      (target.kind === 'shot' ? interior : endpoints).append(pick);
     }
-    this.previewsEl.prepend(endpoints,...(interior.children.length?[interior]:[]));
-    if(this.frameImages.root.parentNode!==this.previewsEl) this.previewsEl.append(this.frameImages.root);
-    this.previewsEl.append(this.shotSplit(selected),this.savedStills(shots));
+    this.previewsEl.prepend(endpoints, ...(interior.children.length ? [interior] : []));
+    if (this.frameImages.root.parentNode !== this.previewsEl) this.previewsEl.append(this.frameImages.root);
+    this.previewsEl.append(this.shotSplit(selected), this.savedStills(shots));
     const box = this.box();
     const source = box.prompt;
     const sections = promptSections(source);
@@ -1630,113 +1636,113 @@ export class TimelineEditor {
   // A clip converted to FLF2VA + cached RefMods uses its First and Last stills as the real start and end frames of the
   // video, not as guides, so they are named that way.
   runsFlf(index) {
-    const box=this.state.boxes[index];
-    return !!box?.flf_refmods&&model.describeBox(this.state,index,this.connectedSets(),this.host.context()).mode==='FLF2VA';
+    const box = this.state.boxes[index];
+    return !!box?.flf_refmods && model.describeBox(this.state, index, this.connectedSets(), this.host.context()).mode === 'FLF2VA';
   }
 
-  stillName(index,target) {
-    return target.kind!=='shot'&&this.runsFlf(index)?`${targetLabel(target)} frame`:targetLabel(target);
+  stillName(index, target) {
+    return target.kind !== 'shot' && this.runsFlf(index) ? `${targetLabel(target)} frame` : targetLabel(target);
   }
 
   // Under FLF2VA the accepted First/Last still is the Settings frame; say so where the picker reads None.
-  fillEndpointNote(note,index,kind) {
-    const guide=this.runsFlf(index)?endpointGuide(this.state,index,this.host.context(),kind)?.guide:null;
+  fillEndpointNote(note, index, kind) {
+    const guide = this.runsFlf(index) ? endpointGuide(this.state, index, this.host.context(), kind)?.guide : null;
     note.replaceChildren();
-    note.hidden=!guide;
-    if(!guide) return;
-    const img=el('img');img.src=this.host.viewUrl(guide);img.alt='';img.draggable=false;
-    img.style.cssText='height:32px;width:auto;vertical-align:middle;margin-right:6px;border-radius:3px';
-    note.append(img,`The accepted ${kind} still is this clip's ${kind} frame. Change it in the Shots tab.`);
+    note.hidden = !guide;
+    if (!guide) return;
+    const img = el('img'); img.src = this.host.viewUrl(guide); img.alt = ''; img.draggable = false;
+    img.style.cssText = 'height:32px;width:auto;vertical-align:middle;margin-right:6px;border-radius:3px';
+    note.append(img, `The accepted ${kind} still is this clip's ${kind} frame. Change it in the Shots tab.`);
   }
 
-  fillStill(mark,box,target,label) {
-    const index=this.state.boxes.indexOf(box),endpoint=target.kind!=='shot'&&index>=0;
-    const saved=box.previews?.find(p=>p.target
-      ? (p.target.kind==='shot'&&p.target.shot===1?target.kind==='first':p.target.kind===target.kind&&p.target.shot===target.shot)
-      : (p.shot===1?target.kind==='first':target.kind==='shot'&&p.shot===target.shot));
-    const inherited=endpoint&&!saved?.guide?endpointGuide(this.state,index,this.host.context(),target.kind):null;
-    const guide=saved?.guide??inherited?.guide;
-    const frameMode=endpoint&&this.runsFlf(index);
-    if(frameMode) label=label.replace(/(First|Last)$/,'$1 frame');
-    const file=guide??saved?.images?.[0]?.file??saved?.image;
-    if(file) {
-      const img=el('img');img.src=this.host.viewUrl(file);img.alt='';img.draggable=false;mark.append(img);
-    } else mark.append(el('span','h3ct-still-empty','+'));
-    const caption=el('span','h3ct-still-caption');
-    caption.append(el('b',null,label),el('small',null,guide?(frameMode?'In use':'Guide'):file?'Candidate':'Add'));
-    mark.append(caption);mark.classList.toggle('accepted',!!guide);
-    mark.title+=guide?(frameMode?' · accepted frame':' · accepted guide'):file?' · candidate':' · add image';
+  fillStill(mark, box, target, label) {
+    const index = this.state.boxes.indexOf(box), endpoint = target.kind !== 'shot' && index >= 0;
+    const saved = box.previews?.find(p => p.target
+      ? (p.target.kind === 'shot' && p.target.shot === 1 ? target.kind === 'first' : p.target.kind === target.kind && p.target.shot === target.shot)
+      : (p.shot === 1 ? target.kind === 'first' : target.kind === 'shot' && p.shot === target.shot));
+    const inherited = endpoint && !saved?.guide ? endpointGuide(this.state, index, this.host.context(), target.kind) : null;
+    const guide = saved?.guide ?? inherited?.guide;
+    const frameMode = endpoint && this.runsFlf(index);
+    if (frameMode) label = label.replace(/(First|Last)$/, '$1 frame');
+    const file = guide ?? saved?.images?.[0]?.file ?? saved?.image;
+    if (file) {
+      const img = el('img'); img.src = this.host.viewUrl(file); img.alt = ''; img.draggable = false; mark.append(img);
+    } else mark.append(el('span', 'h3ct-still-empty', '+'));
+    const caption = el('span', 'h3ct-still-caption');
+    caption.append(el('b', null, label), el('small', null, guide ? (frameMode ? 'In use' : 'Guide') : file ? 'Candidate' : 'Add'));
+    mark.append(caption); mark.classList.toggle('accepted', !!guide);
+    mark.title += guide ? (frameMode ? ' · accepted frame' : ' · accepted guide') : file ? ' · candidate' : ' · add image';
   }
 
   renderStills(span = this.span ?? this.defaultSpan()) {
     this.stillsEl.replaceChildren();
-    const width=this.stillsEl.clientWidth||this.trackEl.clientWidth||800;
-    let start=0;
-    const clips=this.state.boxes.map((box,index)=>{
-      const left=start/span*width+2,right=(start+box.frames)/span*width-2;
-      const targets=frameTargets(this.state,index,this.host.context());
-      const shots=targets.filter(item=>item.target.kind==='shot').sort((a,b)=>a.movieFrame-b.movieFrame);
-      const clip={box,index,start,left,right,targets,shots};start+=box.frames;return clip;
+    const width = this.stillsEl.clientWidth || this.trackEl.clientWidth || 800;
+    let start = 0;
+    const clips = this.state.boxes.map((box, index) => {
+      const left = start / span * width + 2, right = (start + box.frames) / span * width - 2;
+      const targets = frameTargets(this.state, index, this.host.context());
+      const shots = targets.filter(item => item.target.kind === 'shot').sort((a, b) => a.movieFrame - b.movieFrame);
+      const clip = { box, index, start, left, right, targets, shots }; start += box.frames; return clip;
     });
-    const gap=Math.min(4,...clips.filter(clip=>clip.shots.length>1).map(clip=>(clip.right-clip.left)/(2*clip.shots.length-1)));
-    let shotWidth=Infinity;
-    for(const {left,right,shots} of clips) {
-      if(!shots.length) continue;
-      shotWidth=Math.min(shotWidth,(right-left-gap*(shots.length-1))/shots.length);
-      for(let i=1;i<shots.length;i++) {
-        const spacing=(shots[i].movieFrame-shots[i-1].movieFrame)/span*width;
-        if(spacing>gap) shotWidth=Math.min(shotWidth,spacing-gap);
+    const gap = Math.min(4, ...clips.filter(clip => clip.shots.length > 1).map(clip => (clip.right - clip.left) / (2 * clip.shots.length - 1)));
+    let shotWidth = Infinity;
+    for (const { left, right, shots } of clips) {
+      if (!shots.length) continue;
+      shotWidth = Math.min(shotWidth, (right - left - gap * (shots.length - 1)) / shots.length);
+      for (let i = 1; i < shots.length; i++) {
+        const spacing = (shots[i].movieFrame - shots[i - 1].movieFrame) / span * width;
+        if (spacing > gap) shotWidth = Math.min(shotWidth, spacing - gap);
       }
     }
-    shotWidth=Math.max(0,shotWidth);
-    for(const {box,index,start,left,right,targets,shots} of clips) {
-      const positions=new Map(),widths=new Map();let next=left;
+    shotWidth = Math.max(0, shotWidth);
+    for (const { box, index, start, left, right, targets, shots } of clips) {
+      const positions = new Map(), widths = new Map(); let next = left;
       // Natural layout: each shot spans from its own start to the next shot (or clip end).
-      const natural=new Map(),minNatural=24;
-      shots.forEach((shot,i)=>{
-        const from=Math.max(left,shot.movieFrame/span*width);
-        const to=i+1<shots.length?shots[i+1].movieFrame/span*width-gap:right;
-        natural.set(shot.target.shot,{left:from,width:to-from});
+      const natural = new Map(), minNatural = 24;
+      shots.forEach((shot, i) => {
+        const from = Math.max(left, shot.movieFrame / span * width);
+        const to = i + 1 < shots.length ? shots[i + 1].movieFrame / span * width - gap : right;
+        natural.set(shot.target.shot, { left: from, width: to - from });
       });
-      const useNatural=shots.length>0&&[...natural.values()].every(n=>n.width>=minNatural);
-      if(useNatural) for(const [k,n] of natural) {positions.set(k,n.left);widths.set(k,n.width);}
-      else shots.forEach((shot,i)=>{
-        const latest=right-shotWidth-(shots.length-i-1)*(shotWidth+gap);
-        const position=Math.min(latest,Math.max(next,shot.movieFrame/span*width));
-        positions.set(shot.target.shot,position);widths.set(shot.target.shot,shotWidth);next=position+shotWidth+gap;
+      const useNatural = shots.length > 0 && [...natural.values()].every(n => n.width >= minNatural);
+      if (useNatural) for (const [k, n] of natural) { positions.set(k, n.left); widths.set(k, n.width); }
+      else shots.forEach((shot, i) => {
+        const latest = right - shotWidth - (shots.length - i - 1) * (shotWidth + gap);
+        const position = Math.min(latest, Math.max(next, shot.movieFrame / span * width));
+        positions.set(shot.target.shot, position); widths.set(shot.target.shot, shotWidth); next = position + shotWidth + gap;
       });
-      for (const {target, movieFrame} of targets) {
+      for (const { target, movieFrame } of targets) {
         const label = targetLabel(target), name = target.kind === 'shot' ? `shot:${target.shot}` : target.kind;
-        const mark = button('', `Clip ${index+1}, ${label}, movie frame ${movieFrame}`, () => {
-          this.selected=index;this.selectedShot=target.shot??1;
-          this.frameImages.open(box.id,target);this.setTab('still');this.renderTrack();this.renderPanel();
-          this.trackEl.dispatchEvent(new CustomEvent('h3c-show-page',{bubbles:true,detail:{page:'box'}}));
-          this.inspect({kind:'clip',box:box.id});
+        const mark = button('', `Clip ${index + 1}, ${label}, movie frame ${movieFrame}`, () => {
+          this.selected = index; this.selectedShot = target.shot ?? 1;
+          this.frameImages.open(box.id, target); this.setTab('still'); this.renderTrack(); this.renderPanel();
+          this.trackEl.dispatchEvent(new CustomEvent('h3c-show-page', { bubbles: true, detail: { page: 'box' } }));
+          this.inspect({ kind: 'clip', box: box.id });
         }, 'h3ct-still');
-        mark.dataset.box=box.id;mark.dataset.target=name;mark.dataset.frame=String(movieFrame);
-        mark.setAttribute('aria-label',`Clip ${index+1}, ${label} image`);
-        if(target.kind==='shot') {
+        mark.dataset.box = box.id; mark.dataset.target = name; mark.dataset.frame = String(movieFrame);
+        mark.setAttribute('aria-label', `Clip ${index + 1}, ${label} image`);
+        if (target.kind === 'shot') {
           // Keep timing gaps where possible; late or coincident shots fit inside their clip.
-          mark.classList.add('interior');mark.style.left=percent(positions.get(target.shot)/width);
-          mark.style.top='76px';mark.style.width=`${widths.get(target.shot)}px`;mark.style.height='66px';
+          mark.classList.add('interior'); mark.style.left = percent(positions.get(target.shot) / width);
+          mark.style.top = '76px'; mark.style.width = `${widths.get(target.shot)}px`; mark.style.height = '66px';
         } else {
-          mark.style.left=`calc(${percent((start+(target.kind==='last'?box.frames/2:0))/span)} + 2px)`;
-          mark.style.top='4px';mark.style.width=`calc(${percent(box.frames/2/span)} - 4px)`;mark.style.height='66px';
+          mark.style.left = `calc(${percent((start + (target.kind === 'last' ? box.frames / 2 : 0)) / span)} + 2px)`;
+          mark.style.top = '4px'; mark.style.width = `calc(${percent(box.frames / 2 / span)} - 4px)`; mark.style.height = '66px';
         }
-        mark.addEventListener('pointerdown',event=>event.stopPropagation());
-        mark.addEventListener('click',event=>event.stopPropagation());
-        mark.addEventListener('keydown',event=>{
-          if(event.key==='Enter'||event.key===' ') {event.preventDefault();event.stopPropagation();mark.click();}
+        mark.addEventListener('pointerdown', event => event.stopPropagation());
+        mark.addEventListener('click', event => event.stopPropagation());
+        mark.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); mark.click(); }
         });
-        mark.classList.toggle('selected',this.frameImages.boxId===box.id
-          && this.frameImages.target.kind===target.kind && this.frameImages.target.shot===target.shot);
-        this.fillStill(mark,box,target,`${index+1} · ${targetLabel(target)}`);
-        imageDrop(mark,file=>{mark.click();this.dropGuide(file,target);});
+        mark.classList.toggle('selected', this.frameImages.boxId === box.id
+          && this.frameImages.target.kind === target.kind && this.frameImages.target.shot === target.shot);
+        this.fillStill(mark, box, target, `${index + 1} · ${targetLabel(target)}`);
+        imageDrop(mark, file => { mark.click(); this.dropGuide(file, target); });
         this.stillsEl.append(mark);
       }
     }
-    this.stillsEl.style.height=`${clips.some(clip=>clip.shots.length)?146:74}px`;
-    this.stillsEl.hidden=!this.state.boxes.length;
+    this.stillsEl.style.height = `${clips.some(clip => clip.shots.length) ? 146 : 74}px`;
+    this.stillsEl.hidden = !this.state.boxes.length;
   }
 
   renderPlates() {
@@ -1784,10 +1790,11 @@ export class TimelineEditor {
     });
     try {
       const timing = splitTiming(this.state, this.selected, shot.shot, this.host.context());
+      const fps = model.FPS || 24;
       split.title = (timing.left
-        ? `Make two clips adding ${(timing.left / model.FPS).toFixed(2)} s and ${(timing.right / model.FPS).toFixed(2)} s. `
-        : `Start this clip at Shot ${shot.shot} as a fresh ${(timing.right / model.FPS).toFixed(2)} s clip. The replayed opening is already in the previous clip. `)
-        + (timing.added ? `Adds ${(timing.added / model.FPS).toFixed(2)} s for H3 frame alignment, preserving performance time. ` : '')
+        ? `Make two clips adding ${(Number(timing.left || 0) / fps).toFixed(2)} s and ${(Number(timing.right || 0) / fps).toFixed(2)} s. `
+        : `Start this clip at Shot ${shot.shot} as a fresh ${(Number(timing.right || 0) / fps).toFixed(2)} s clip. The replayed opening is already in the previous clip. `)
+        + (timing.added ? `Adds ${(Number(timing.added || 0) / fps).toFixed(2)} s for H3 frame alignment, preserving performance time. ` : '')
         + 'Each keeps its required references.';
     } catch (error) {
       split.disabled = true;
@@ -1807,12 +1814,12 @@ export class TimelineEditor {
       if (image) {
         const img = el('img');
         img.src = this.host.viewUrl(image);
-        img.alt = `Saved still for clip ${this.selected + 1}, ${saved.target ? targetLabel(saved.target) : 'shot '+saved.shot}`;
+        img.alt = `Saved still for clip ${this.selected + 1}, ${saved.target ? targetLabel(saved.target) : 'shot ' + saved.shot}`;
         thumb.append(img);
       }
       row.append(thumb, body);
-      const active = saved.target ? frameTargets(this.state,this.selected,this.host.context())
-        .some(item=>item.target.kind===saved.target.kind&&item.target.shot===saved.target.shot) : shots.some(s=>s.shot===saved.shot);
+      const active = saved.target ? frameTargets(this.state, this.selected, this.host.context())
+        .some(item => item.target.kind === saved.target.kind && item.target.shot === saved.target.shot) : shots.some(s => s.shot === saved.shot);
       // An untargeted guide renders at its saved frame whether or not its shot still exists.
       const free = !saved.target && saved.guide && (saved.shot >= FREE_GUIDE || !active);
       const label = free ? 'Frame guide' : saved.target ? targetLabel(saved.target) : `Shot ${saved.shot}`;
@@ -1827,7 +1834,7 @@ export class TimelineEditor {
       if (saved.guide) {
         const frame = this.guideFrameInput(saved.frame, 'Move this guide to another frame of the clip');
         frame.addEventListener('change', async () => {
-          if (!await this.placeGuide(body, Number(frame.value), {saved, managed})) frame.value = String(saved.frame);
+          if (!await this.placeGuide(body, Number(frame.value), { saved, managed })) frame.value = String(saved.frame);
         });
         controls.append(field('Frame', frame));
       }
@@ -1844,7 +1851,7 @@ export class TimelineEditor {
     }
     const add = el('div', 'h3ct-guide-add'), controls = el('div', 'h3ct-saved-controls');
     const frame = this.guideFrameInput(Math.floor(this.lastGuideFrame() / 2), 'The clip frame the new guide steers');
-    const upload = (file) => this.placeGuide(add, Number(frame.value), {file});
+    const upload = (file) => this.placeGuide(add, Number(frame.value), { file });
     controls.append(field('Frame', frame), button('Upload guide…',
       'Upload a picture that guides this frame without adding a shot', () => {
         const input = el('input'); input.type = 'file'; input.accept = 'image/*';
@@ -1871,7 +1878,7 @@ export class TimelineEditor {
 
   // Saves a guide at `frame` as an untargeted preview, which the renderer reads at its saved frame. `saved` moves an
   // existing guide (a marker's guide leaves the marker, which keeps its candidates); `file` uploads a new one.
-  async placeGuide(row, frame, {saved, managed, file}) {
+  async placeGuide(row, frame, { saved, managed, file }) {
     const boxId = this.box().id;
     // Checked before an upload and again after it, since the Timeline can change while the file uploads.
     const check = () => {
@@ -1891,8 +1898,8 @@ export class TimelineEditor {
       this.host.undoStep?.();
       const shot = Math.max(FREE_GUIDE - 1, ...(box.previews ?? []).filter(item => !item.target).map(item => item.shot)) + 1;
       box.previews ??= [];
-      if (saved && !managed) { delete saved.target; Object.assign(saved, {shot, frame}); }
-      else { if (saved) delete saved.guide; box.previews.push({shot, frame, guide}); }
+      if (saved && !managed) { delete saved.target; Object.assign(saved, { shot, frame }); }
+      else { if (saved) delete saved.guide; box.previews.push({ shot, frame, guide }); }
       if (box.flf_refmods) adoptEndpointGuides(this.state, this.state.boxes.indexOf(box), this.host.context());
       this.commit();
       this.host.undoStep?.();
@@ -1918,7 +1925,7 @@ export class TimelineEditor {
     this.dialogueSelect.value = box.dialogue === 'manual' ? 'manual' : 'cues';
     this.boxRenderButton.textContent = renderLabel(this.selected + 1, this.takeCount());
     this.boxRenderButton.title = 'Render only this clip using its seed mode, keeping its saved prompt and neighboring videos';
-    this.boxRenderButton.disabled = this.host.hasVideo?.()===false || this.queuing || blocking.length > 0 || !this.seedInput.validity.valid;
+    this.boxRenderButton.disabled = this.host.hasVideo?.() === false || this.queuing || blocking.length > 0 || !this.seedInput.validity.valid;
     const tags = info.tags.map((item) => `${item.tag} = ${item.name}`).join(', ');
     const guides = info.guides.map((item) => ` · ${item.name} guides the ${item.frame} frame`).join('');
     const problems = info.problems.length ? ` · ${info.problems.join(' ')}` : '';
@@ -1958,8 +1965,10 @@ export class TimelineEditor {
     }
     this.chipsEl.append(el('span', 'h3ct-label', 'References'));
     for (const ref of refs) {
-      this.chipsEl.append(referenceChip(ref, {onClick: () => this.insert(`@${ref.name}`),
-        title: ref.title ? `${ref.title}: insert at the cursor` : 'Insert at the cursor'}));
+      this.chipsEl.append(referenceChip(ref, {
+        onClick: () => this.insert(`@${ref.name}`),
+        title: ref.title ? `${ref.title}: insert at the cursor` : 'Insert at the cursor'
+      }));
     }
   }
 }

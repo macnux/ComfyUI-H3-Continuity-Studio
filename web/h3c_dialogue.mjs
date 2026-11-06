@@ -70,7 +70,7 @@ export const recordingFile = model.recordingFile;
 // Checking says the words and times match the recording as `state` plays it now, so the cue binds to that file.
 export async function setChecked(cue, checked, state) {
   const file = checked && state ? recordingFile(state, cue.recording.slot) : null;
-  if (file) cue.recording = {...cue.recording, file: structuredClone(file)};
+  if (file) cue.recording = { ...cue.recording, file: structuredClone(file) };
   if (checked) cue.aligned = await alignmentKey(cue);
   else delete cue.aligned;
 }
@@ -99,13 +99,15 @@ function freeIds(existing) {
   };
 }
 
-const recording = (clip) => ({slot: clip.slot, file: structuredClone(clip.file)});
+const recording = (clip) => ({ slot: clip.slot, file: structuredClone(clip.file) });
 
 // A draft cue on `clip`: the first second of its placed window, words still to be written.
 export function newCue(existing, clip) {
-  return {id: freeIds(existing)(), recording: recording(clip), start: clip.source_start,
+  return {
+    id: freeIds(existing)(), recording: recording(clip), start: clip.source_start,
     end: Math.min(clip.source_start + 1, clip.source_start + clip.duration), text: '', speaker: '', portrayal: 'unknown',
-    origin: 'manual'};
+    origin: 'manual'
+  };
 }
 
 // {cues, skipped}: a supplied timed transcript of `clip`'s recording as unchecked cues. Times are the recording's own;
@@ -123,10 +125,12 @@ export function cuesFromTranscript(data, clip, existing) {
     const token = CONTROL.exec(text)?.[0];
     if (token) throw new Error(`Transcript segment ${index + 1} contains ${token}; cues hold only the spoken words.`);
     if (!text || !Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start) { skipped += 1; return; }
-    cues.push({id: next(), recording: recording(clip), start, end, text,
-      speaker: typeof segment.speaker === 'string' ? segment.speaker : '', portrayal: 'unknown', origin: 'transcript'});
+    cues.push({
+      id: next(), recording: recording(clip), start, end, text,
+      speaker: typeof segment.speaker === 'string' ? segment.speaker : '', portrayal: 'unknown', origin: 'transcript'
+    });
   });
-  return {cues, skipped};
+  return { cues, skipped };
 }
 
 // {cues, skipped}: the dialogue Story planned for each box, mapped from the box's generation clock (its carried
@@ -147,18 +151,22 @@ export function cuesFromStory(state, clip, existing, context) {
         if (!text || !(last > first) || first < clip.start - EPSILON || last > clip.start + clip.duration + EPSILON
           || CONTROL.test(text)) { skipped += 1; continue; }
         const offset = clip.source_start - clip.start;
-        cues.push({id: next(), recording: recording(clip), start: Math.max(0, first + offset), end: last + offset, text,
+        cues.push({
+          id: next(), recording: recording(clip), start: Math.max(0, first + offset), end: last + offset, text,
           speaker: String(line.speaker ?? '').trim() || names.get(line.subject) || line.subject || '',
-          ...(typeof line.language === 'string' && line.language ? {language: line.language} : {}),
-          portrayal: line.voiceover ? 'voiceover' : 'on_screen', origin: 'story'});
+          ...(typeof line.language === 'string' && line.language ? { language: line.language } : {}),
+          portrayal: line.voiceover ? 'voiceover' : 'on_screen', origin: 'story'
+        });
       }
     }
     start += box.frames;
   });
-  return {cues, skipped};
+  return { cues, skipped };
 }
 
-const span = (sequence) => `${sequence[0].toFixed(2)}–${sequence[1].toFixed(2)} s`;
+const span = (sequence) => (Array.isArray(sequence) && sequence[0] != null && sequence[1] != null)
+  ? `${Number(sequence[0]).toFixed(2)}–${Number(sequence[1]).toFixed(2)} s`
+  : '0.00–0.00 s';
 
 // The server's view of a cue (an item of status.dialogue.cues), in a sentence.
 export function cueStatusLine(item) {
@@ -265,7 +273,7 @@ export class DialoguePanel {
 
   add(found, what) {
     const state = this.editor.state;
-    state.dialogue ??= {version: 1, cues: []};
+    state.dialogue ??= { version: 1, cues: [] };
     state.dialogue.cues = [...(state.dialogue.cues ?? []), ...found.cues];
     this.message.textContent = `Added ${found.cues.length} cue${found.cues.length === 1 ? '' : 's'} from ${what}`
       + `${found.skipped ? `; skipped ${found.skipped}` : ''}. Check each against the recording.`;
@@ -316,7 +324,7 @@ export class DialoguePanel {
 
   timeInput(label, value, onChange) {
     const input = el('input', 'h3ct-number');
-    input.type = 'number'; input.min = '0'; input.step = '0.01'; input.value = String(Number(value.toFixed(3)));
+    input.type = 'number'; input.min = '0'; input.step = '0.01'; input.value = String(Number((value ?? 0).toFixed(3)));
     input.setAttribute('aria-label', label);
     input.addEventListener('change', () => onChange(Number(input.value)));
     return input;
@@ -401,7 +409,7 @@ export class DialoguePanel {
         const problem = cueProblem(draft);
         if (problem) { this.message.textContent = problem; return; }
         this.draft = null;
-        this.add({cues: [draft], skipped: 0}, 'the form');
+        this.add({ cues: [draft], skipped: 0 }, 'the form');
       }));
     this.draftEl.append(row, text);
   }
@@ -414,7 +422,7 @@ export class DialoguePanel {
     this.summary.textContent = `Dialogue cues${cues.length ? ` · ${cues.length}${this.editor.stale ? '' : `, ${checked} checked`}` : ''}`;
     this.root.hidden = !clips.length && !cues.length;
     const signature = JSON.stringify([state.dialogue, clips.map((clip) => [clip.slot, clip.file, clip.locked]),
-      this.editor.stale ? null : this.editor.status?.dialogue]);
+    this.editor.stale ? null : this.editor.status?.dialogue]);
     const typing = this.root.contains(document.activeElement) && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
     if (!force && (this.signature === signature || typing)) return;
     this.signature = signature;

@@ -106,7 +106,7 @@ function halfPrompt(parsed, kept, shared, offset, first, last, duration) {
   } else {
     // Native frame guides belong only to the appropriate half, never both through the old alignment header.
     const alignment = [first && `@${first} (from [Shot 1]) aligns with the 0.00-second mark`,
-      last && `@${last} (from [Shot ${kept.length}]) aligns with the ${duration.toFixed(2)}-second mark`].filter(Boolean);
+      last && `@${last} (from [Shot ${kept.length}]) aligns with the ${(Number(duration) || 0).toFixed(2)}-second mark`].filter(Boolean);
     prompt = (alignment.length ? `How the reference pictures align with the target video — ${alignment.join('; ')}.\n\n` : '')
       + `integrated_multimodal_description:\n${[style, scene].filter(Boolean).join('\n')}`;
   }

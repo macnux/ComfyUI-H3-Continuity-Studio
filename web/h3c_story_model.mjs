@@ -289,7 +289,7 @@ export function resultMessage({ applied, planned, failed = 0, staleText }, timel
   if (failed) return `Incomplete: wrote ${applied} of ${applied + failed} box prompts. ${failed} `
     + `${failed === 1 ? 'box needs' : 'boxes need'} another Write; see Notes for the reasons.`;
   if (!planned) return applied === 1 ? 'Wrote 1 box prompt.' : `Wrote ${applied} box prompts.`;
-  const seconds = (totalFrames(timeline) / FPS).toFixed(1);
+  const seconds = (Number(totalFrames(timeline) ?? 0) / (FPS || 24)).toFixed(1);
   const boxes = planned === 1 ? `Planned 1 box (${seconds} s)` : `Planned ${planned} boxes (${seconds} s)`;
   if (!applied) return `${boxes} without prompts.`;
   if (applied < planned) return `${boxes} and wrote ${applied} of their prompts.`;

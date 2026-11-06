@@ -1,9 +1,9 @@
-import {reconcileSceneAnchors} from './h3c_still_scene.mjs?v=20261011-reference-preparation-1';
+import { reconcileSceneAnchors } from './h3c_still_scene.mjs?v=20261011-reference-preparation-1';
 // H3 Timeline editor model: the timeline JSON, lengths on the H3 frame grid, edits, and the rules that
 // decide how a box runs. Mirrors h3_continuity/timeline.py.
-import {parseJSON, stringifyJSON, seedValue} from './h3c_project.mjs?v=20261031-held-jobs-1';
-import {imageDescriptionPrompt, imageDescriptionSource} from './h3c_image_descriptions.mjs?v=20261010-image-descriptions-1';
-import {acceptedGuideFrames} from './h3c_shot_preview.mjs?v=20261105-still-quality-1';
+import { parseJSON, stringifyJSON, seedValue } from './h3c_project.mjs?v=20261031-held-jobs-1';
+import { imageDescriptionPrompt, imageDescriptionSource } from './h3c_image_descriptions.mjs?v=20261010-image-descriptions-1';
+import { acceptedGuideFrames } from './h3c_shot_preview.mjs?v=20261105-still-quality-1';
 export const FPS = 24;
 export const MAX_FRAMES = 362;
 export const GRID = 17;
@@ -119,19 +119,19 @@ export function parseState(text) {
   const boxes = Array.isArray(data.boxes) ? data.boxes.filter((box) => box && typeof box === 'object') : [];
   return {
     prompt: typeof data.prompt === 'string' ? data.prompt : '',
-    ...(record(data.reference_preparation) ? {reference_preparation:structuredClone(data.reference_preparation)} : {}),
-    ...(record(data.still_prompt_preparation) ? {still_prompt_preparation:structuredClone(data.still_prompt_preparation)} : {}),
-    ...(record(data.continuity)?{continuity:structuredClone(data.continuity)}:{}),
-    ...(Array.isArray(data.still_requests) ? {still_requests:structuredClone(data.still_requests)} : {}),
+    ...(record(data.reference_preparation) ? { reference_preparation: structuredClone(data.reference_preparation) } : {}),
+    ...(record(data.still_prompt_preparation) ? { still_prompt_preparation: structuredClone(data.still_prompt_preparation) } : {}),
+    ...(record(data.continuity) ? { continuity: structuredClone(data.continuity) } : {}),
+    ...(Array.isArray(data.still_requests) ? { still_requests: structuredClone(data.still_requests) } : {}),
     ...(data.timed_text && typeof data.timed_text === 'object'
       ? { timed_text: structuredClone(data.timed_text) } : {}),
     ...(data.reference_descriptions && typeof data.reference_descriptions === 'object'
       ? { reference_descriptions: structuredClone(data.reference_descriptions) } : {}),
-    ...(record(data.reference_replacements) ? {reference_replacements:structuredClone(data.reference_replacements)} : {}),
-    ...(data.context_noise === true ? {context_noise: true} : {}),
-    ...(data.continuation_guide === false ? {continuation_guide: false} : {}),
-    ...(Number.isInteger(data.audio_feather) && data.audio_feather > 0 ? {audio_feather: data.audio_feather} : {}),
-    ...(Array.isArray(data.video_slices) && data.video_slices.length ? {video_slices: [...data.video_slices]} : {}),
+    ...(record(data.reference_replacements) ? { reference_replacements: structuredClone(data.reference_replacements) } : {}),
+    ...(data.context_noise === true ? { context_noise: true } : {}),
+    ...(data.continuation_guide === false ? { continuation_guide: false } : {}),
+    ...(Number.isInteger(data.audio_feather) && data.audio_feather > 0 ? { audio_feather: data.audio_feather } : {}),
+    ...(Array.isArray(data.video_slices) && data.video_slices.length ? { video_slices: [...data.video_slices] } : {}),
     ...(Array.isArray(data.disabled_refs) ? { disabled_refs: [...data.disabled_refs] } : {}),
     ...(Array.isArray(data.refmods) ? { refmods: structuredClone(data.refmods) } : {}),
     ...(Array.isArray(data.audio_clips) ? { audio_clips: structuredClone(data.audio_clips) } : {}),
@@ -139,7 +139,7 @@ export function parseState(text) {
     ...(Array.isArray(data.voice_clips) && data.voice_clips.length
       ? { voice_clips: structuredClone(data.voice_clips) } : {}),
     ...(data.qwen && typeof data.qwen === 'object' ? { qwen: structuredClone(data.qwen) } : {}),
-    ...(Array.isArray(data.plates) ? { plates: structuredClone(data.plates).map(({pending, job, ...p}) => p) } : {}),
+    ...(Array.isArray(data.plates) ? { plates: structuredClone(data.plates).map(({ pending, job, ...p }) => p) } : {}),
     ...(record(data.bible) ? { bible: structuredClone(data.bible) } : {}),
     ...(Array.isArray(data.bridges) ? { bridges: structuredClone(data.bridges).filter(record) } : {}),
     ...(record(data.dialogue) ? { dialogue: structuredClone(data.dialogue) } : {}),
@@ -150,7 +150,7 @@ export function parseState(text) {
         : Number.isFinite(box.seconds) ? Math.round(box.seconds * FPS) : null,
       prompt: typeof box.prompt === 'string' ? box.prompt : '',
       seed: seedValue(box.seed),
-      ...(box.seed_mode === 'randomize' ? {seed_mode:'randomize'} : {}),
+      ...(box.seed_mode === 'randomize' ? { seed_mode: 'randomize' } : {}),
       cut: !!box.cut,
       first: slotName(box.first),
       last: slotName(box.last),
@@ -160,10 +160,12 @@ export function parseState(text) {
       ...(box.memory ? { memory: box.memory } : {}),
       ...(Array.isArray(box.memories) ? { memories: structuredClone(box.memories) } : {}),
       ...(Array.isArray(box.plate_changes) ? { plate_changes: structuredClone(box.plate_changes) } : {}),
-      ...(Array.isArray(box.plate_edits) ? { plate_edits: structuredClone(box.plate_edits).map(({pending, job, ...p}) => p) } : {}),
+      ...(Array.isArray(box.plate_edits) ? { plate_edits: structuredClone(box.plate_edits).map(({ pending, job, ...p }) => p) } : {}),
       ...(Array.isArray(box.previews) && box.previews.length
-        ? { previews: structuredClone(box.previews).filter((p) => p && typeof p === 'object')
-          .map(({ pending, job, ...p }) => p) } : {}),
+        ? {
+          previews: structuredClone(box.previews).filter((p) => p && typeof p === 'object')
+            .map(({ pending, job, ...p }) => p)
+        } : {}),
       ...(record(box.cast) ? { cast: structuredClone(box.cast) } : {}),
       ...(record(box.schedule) ? { schedule: structuredClone(box.schedule) } : {}),
       ...(record(box.join) ? { join: structuredClone(box.join) } : {}),
@@ -179,17 +181,17 @@ export function serialize(state) {
     version: 1,
     ...(requires.length ? { requires } : {}),
     prompt: state.prompt,
-    ...(state.reference_preparation ? {reference_preparation:state.reference_preparation} : {}),
-    ...(state.still_prompt_preparation ? {still_prompt_preparation:state.still_prompt_preparation} : {}),
-    ...(state.continuity?{continuity:state.continuity}:{}),
-    ...(state.still_requests ? {still_requests:state.still_requests} : {}),
+    ...(state.reference_preparation ? { reference_preparation: state.reference_preparation } : {}),
+    ...(state.still_prompt_preparation ? { still_prompt_preparation: state.still_prompt_preparation } : {}),
+    ...(state.continuity ? { continuity: state.continuity } : {}),
+    ...(state.still_requests ? { still_requests: state.still_requests } : {}),
     ...(state.timed_text ? { timed_text: state.timed_text } : {}),
     ...(state.reference_descriptions ? { reference_descriptions: state.reference_descriptions } : {}),
-    ...(Object.keys(state.reference_replacements ?? {}).length ? {reference_replacements:state.reference_replacements} : {}),
-    ...(state.context_noise === true ? {context_noise: true} : {}),
-    ...(state.continuation_guide === false ? {continuation_guide: false} : {}),
-    ...(state.audio_feather > 0 ? {audio_feather: state.audio_feather} : {}),
-    ...(state.video_slices?.length ? {video_slices: state.video_slices} : {}),
+    ...(Object.keys(state.reference_replacements ?? {}).length ? { reference_replacements: state.reference_replacements } : {}),
+    ...(state.context_noise === true ? { context_noise: true } : {}),
+    ...(state.continuation_guide === false ? { continuation_guide: false } : {}),
+    ...(state.audio_feather > 0 ? { audio_feather: state.audio_feather } : {}),
+    ...(state.video_slices?.length ? { video_slices: state.video_slices } : {}),
     ...(state.disabled_refs ? { disabled_refs: state.disabled_refs } : {}),
     ...(state.refmods ? { refmods: state.refmods } : {}),
     ...(state.audio_clips ? { audio_clips: state.audio_clips } : {}),
@@ -202,7 +204,7 @@ export function serialize(state) {
     ...(state.dialogue ? { dialogue: state.dialogue } : {}),
     boxes: state.boxes.map((box) => ({
       id: box.id, frames: box.frames, prompt: box.prompt, seed: box.seed, cut: !!box.cut,
-      ...(box.seed_mode === 'randomize' ? {seed_mode:'randomize'} : {}),
+      ...(box.seed_mode === 'randomize' ? { seed_mode: 'randomize' } : {}),
       first: box.first || '', last: box.last || '',
       ...(box.exact ? { exact: true } : {}),
       ...(box.flf_refmods ? { flf_refmods: true } : {}),
@@ -358,7 +360,7 @@ export function activeAudioClips(state, index) {
 }
 
 export function editAudioClip(clip, mode, delta) {
-  const result = {...clip};
+  const result = { ...clip };
   const minimum = Math.min(1 / FPS, clip.source_duration);
   if (mode === 'move') result.start = Math.max(0, clip.start + delta);
   else if (mode === 'left') {
@@ -389,7 +391,7 @@ export function effectivePlates(state, index, frame = 0) {
   const result = {};
   for (let i = 0; i <= index; i++) {
     for (const change of [...state.boxes[i].plate_changes ?? []].sort((a, b) => a.frame - b.frame)) {
-      if(state.reference_replacements?.[change.slot])continue;
+      if (state.reference_replacements?.[change.slot]) continue;
       if (i === index && change.frame > frame) continue;
       if (!change.revision) { delete result[change.slot]; continue; }
       const revision = state.plates?.find((p) => p.id === change.revision && p.slot === change.slot);
@@ -491,7 +493,7 @@ function cueFrames(state, cue) {
   const slot = cue.recording?.slot, file = recordingFile(state, slot), wanted = cue.recording?.file;
   const clip = (state.audio_clips ?? []).find((item) => item.slot === slot);
   if (!clip || (state.disabled_refs ?? []).includes(slot) || !file || !wanted
-      || ['type', 'subfolder', 'filename'].some((key) => (file[key] ?? '') !== (wanted[key] ?? ''))) return [];
+    || ['type', 'subfolder', 'filename'].some((key) => (file[key] ?? '') !== (wanted[key] ?? ''))) return [];
   const start = Math.max(cue.start, clip.source_start), end = Math.min(cue.end, clip.source_start + clip.duration);
   const parts = [];
   let cursor = cue.start;
@@ -526,11 +528,11 @@ export function memorySources(state, index) {
   if (!index || !box.cut) return sources;
   const previous = state.boxes[index - 1];
   if (speaks(state, index) || speaks(state, index - 1)) {
-    const before = {box: previous.id, frame: Math.max(0, previous.frames - 5), label: 'the moment before this cut'};
+    const before = { box: previous.id, frame: Math.max(0, previous.frames - 5), label: 'the moment before this cut' };
     return sources.some((item) => item.box === before.box && item.frame === before.frame) ? sources : [...sources, before];
   }
-  return [{box: previous.id, frame: 0, label: 'the previous shot before this cut', whole: true},
-    ...sources.filter(item => box.memory === 'selected' || item.box !== previous.id)];
+  return [{ box: previous.id, frame: 0, label: 'the previous shot before this cut', whole: true },
+  ...sources.filter(item => box.memory === 'selected' || item.box !== previous.id)];
 }
 
 function sceneSources(state, index) {
@@ -539,9 +541,9 @@ function sceneSources(state, index) {
   for (let i = 0; i <= index; i++) if ((state.boxes[i].cut && state.boxes[i].new_scene) || state.boxes[i].plate_changes?.length) start = i;
   if (start === index) return [];
   const previous = state.boxes[index - 1];
-  return [{box: state.boxes[start].id, frame: 0, label: 'scene establishing view'}, box.cut
-    ? {box: previous.id, frame: Math.max(0, previous.frames - 5), label: 'the moment before this cut'}
-    : {box: previous.id, frame: Math.max(0, Math.floor((previous.frames - 5) / 2)), label: 'earlier view of the current scene'}];
+  return [{ box: state.boxes[start].id, frame: 0, label: 'scene establishing view' }, box.cut
+    ? { box: previous.id, frame: Math.max(0, previous.frames - 5), label: 'the moment before this cut' }
+    : { box: previous.id, frame: Math.max(0, Math.floor((previous.frames - 5) / 2)), label: 'earlier view of the current scene' }];
 }
 
 // The entity's look at box `index`: 0 for its description, or k for looks[k-1], as story_bible.look_at.
@@ -576,7 +578,7 @@ function castSources(state, index) {
   if (place && !(atPlace && !box.cut)) found.push(castMoment(state, index, place, position, placeBox));
   if (atPlace && box.cut) {
     const before = state.boxes[index - 1];
-    found.push({box: before.id, frame: Math.max(0, before.frames - 5), label: 'the moment before this cut'});
+    found.push({ box: before.id, frame: Math.max(0, before.frames - 5), label: 'the moment before this cut' });
   }
   const result = [];
   for (const window of found) {
@@ -608,12 +610,12 @@ function castMoment(state, index, entity, position, earlierBox) {
   for (const pin of Array.isArray(entity.pins) ? entity.pins : []) {
     const at = position.get(pin?.box);
     if (at !== undefined && start <= at && at < index && Number.isInteger(pin.frame) && pin.frame >= 0
-        && pin.frame < state.boxes[at].frames && (!moment || at >= moment.at)) moment = {at, frame: pin.frame};
+      && pin.frame < state.boxes[at].frames && (!moment || at >= moment.at)) moment = { at, frame: pin.frame };
   }
   moment ??= earlierBox(state, index, entity, start);
   if (!moment) return null;
   const label = Object.entries(state.boxes[index].cast ?? {}).find(([, value]) => value === entity.id)?.[0] ?? entity.name;
-  return {box: state.boxes[moment.at].id, frame: moment.frame, label: `showing ${label}`};
+  return { box: state.boxes[moment.at].id, frame: moment.frame, label: `showing ${label}` };
 }
 
 function characterBox(state, index, entity, start) {
@@ -621,7 +623,7 @@ function characterBox(state, index, entity, start) {
     const box = state.boxes[at];
     if (Array.isArray(box.schedule?.entities) && box.schedule.entities.includes(entity.id)) {
       const frame = shotMiddle(box.source, entity.id);
-      return {at, frame: frame === null ? Math.max(0, box.frames - 5) : Math.min(Math.max(frame, 0), box.frames - 1)};
+      return { at, frame: frame === null ? Math.max(0, box.frames - 5) : Math.min(Math.max(frame, 0), box.frames - 1) };
     }
   }
   return null;
@@ -629,7 +631,7 @@ function characterBox(state, index, entity, start) {
 
 function placeBox(state, index, entity, start) {
   for (let at = index - 1; at >= start; at--) {
-    if (state.boxes[at].schedule?.place === entity.id) return {at, frame: Math.max(0, state.boxes[at].frames - 5)};
+    if (state.boxes[at].schedule?.place === entity.id) return { at, frame: Math.max(0, state.boxes[at].frames - 5) };
   }
   return null;
 }
@@ -677,11 +679,11 @@ export function mentions(text) {
 export function assemblePrompt(state, index) {
   const active = activeAudioClips(state, index);
   const inactive = (state.audio_clips ?? []).filter(clip => !active.includes(clip)).map(clip => clip.slot);
-  const view = {...state, disabled_refs: [...state.disabled_refs ?? [], ...inactive]};
+  const view = { ...state, disabled_refs: [...state.disabled_refs ?? [], ...inactive] };
   const [shared, prompt] = [state.prompt, state.boxes[index].prompt].map((part) => withoutDisabledRefs((part ?? '').trim(), view));
   if (shared && /^(integrated_multimodal_description:|subject_definitions:|For the target video,|How the reference pictures align)/.test(prompt)
-      && prompt.includes('\noverall_soundscape:') && prompt.includes('\nnon_diegetic_music:')
-      && prompt.includes('[Shot 1] ')) {
+    && prompt.includes('\noverall_soundscape:') && prompt.includes('\nnon_diegetic_music:')
+    && prompt.includes('[Shot 1] ')) {
     return prompt.replace('[Shot 1] ', () => `[Shot 1] ${shared} `);
   }
   return [shared, prompt].filter(Boolean).join('\n\n');
@@ -696,88 +698,90 @@ export function referenceType(name) {
   return /^(image|video_audio|video|audio)[1-9]\d*$/.exec(name)?.[1] ?? '';
 }
 
-export function referenceMediaType(state,name) {
-  return state.refmods?.some(ref=>ref.slot===name&&ref.kind==='video') ? 'refmod_video' : referenceType(name);
+export function referenceMediaType(state, name) {
+  return state.refmods?.some(ref => ref.slot === name && ref.kind === 'video') ? 'refmod_video' : referenceType(name);
 }
 
-export function effectiveRefmods(state,{includeDisabled=false}={}) {
-  const mods=new Map((state.refmods??[]).filter(ref=>includeDisabled||(ref.strength??1)>0).map(ref=>[ref.slot,ref]));
-  const replacements=state.reference_replacements??{};
-  const resolve=(slot,path=[])=> {
-    if(path.includes(slot))return null;
-    const replacement=replacements[slot];
-    if(!replacement)return mods.get(slot);
-    if(!replacement.source)return null;
-    const source=resolve(replacement.source,[...path,slot]);
-    return source?{...source,slot}:null;
+export function effectiveRefmods(state, { includeDisabled = false } = {}) {
+  const mods = new Map((state.refmods ?? []).filter(ref => includeDisabled || (ref.strength ?? 1) > 0).map(ref => [ref.slot, ref]));
+  const replacements = state.reference_replacements ?? {};
+  const resolve = (slot, path = []) => {
+    if (path.includes(slot)) return null;
+    const replacement = replacements[slot];
+    if (!replacement) return mods.get(slot);
+    if (!replacement.source) return null;
+    const source = resolve(replacement.source, [...path, slot]);
+    return source ? { ...source, slot } : null;
   };
-  return [...new Set([...mods.keys(),...Object.keys(replacements)])].map(slot=>resolve(slot)).filter(Boolean);
+  return [...new Set([...mods.keys(), ...Object.keys(replacements)])].map(slot => resolve(slot)).filter(Boolean);
 }
 
-const referenceGroup = {image:'images',video:'videos',audio:'audios',video_audio:'video_audios'};
+const referenceGroup = { image: 'images', video: 'videos', audio: 'audios', video_audio: 'video_audios' };
 
 function soundtrackPairingProblems(replacements) {
-  const effective={...replacements};
-  for(const [slot,value] of Object.entries(replacements)) {
-    if(referenceType(slot)==='video')effective[slot.replace('video','video_audio')]??=value.source
-      ? {source:value.source.replace('video','video_audio')} : value;
+  const effective = { ...replacements };
+  for (const [slot, value] of Object.entries(replacements)) {
+    if (referenceType(slot) === 'video') effective[slot.replace('video', 'video_audio')] ??= value.source
+      ? { source: value.source.replace('video', 'video_audio') } : value;
   }
-  const origin=(slot,path=[])=> {
-    if(path.includes(slot))return null;
-    const value=effective[slot];
-    return value?.source?origin(value.source,[...path,slot]):value??{source:slot};
+  const origin = (slot, path = []) => {
+    if (path.includes(slot)) return null;
+    const value = effective[slot];
+    return value?.source ? origin(value.source, [...path, slot]) : value ?? { source: slot };
   };
-  return Object.keys(replacements).filter(slot=>referenceType(slot)==='video_audio').flatMap(slot=> {
-    const audio=origin(slot),video=origin(slot.replace('video_audio','video'));
-    if(!audio||!video||audio.file)return [];
-    const paired=video.source?{source:video.source.replace('video','video_audio')}:video;
-    return JSON.stringify(audio)===JSON.stringify(paired)?[]:[[slot,`Replacement soundtrack @${slot} must stay paired with its video.`]];
+  return Object.keys(replacements).filter(slot => referenceType(slot) === 'video_audio').flatMap(slot => {
+    const audio = origin(slot), video = origin(slot.replace('video_audio', 'video'));
+    if (!audio || !video || audio.file) return [];
+    const paired = video.source ? { source: video.source.replace('video', 'video_audio') } : video;
+    return JSON.stringify(audio) === JSON.stringify(paired) ? [] : [[slot, `Replacement soundtrack @${slot} must stay paired with its video.`]];
   });
 }
 
 export function referencePools(state, pools, viewUrl) {
-  const original = new Map(Object.values(pools).flat().map(ref => [ref.name,ref]));
+  const original = new Map(Object.values(pools).flat().map(ref => [ref.name, ref]));
   const replacements = state.reference_replacements ?? {};
-  const pairing=new Map(soundtrackPairingProblems(replacements));
-  const names = new Set([...original.keys(),...Object.keys(replacements)]);
-  const hasSoundtrack = (slot,path=[]) => {
-    if(path.includes(slot))return false;
-    const replacement=replacements[slot];
-    if(replacement?.file)return true; // Uploaded video audio is validated when its components are decoded.
-    if(replacement?.source)return hasSoundtrack(replacement.source,[...path,slot]);
-    return original.has(slot.replace('video','video_audio'));
+  const pairing = new Map(soundtrackPairingProblems(replacements));
+  const names = new Set([...original.keys(), ...Object.keys(replacements)]);
+  const hasSoundtrack = (slot, path = []) => {
+    if (path.includes(slot)) return false;
+    const replacement = replacements[slot];
+    if (replacement?.file) return true; // Uploaded video audio is validated when its components are decoded.
+    if (replacement?.source) return hasSoundtrack(replacement.source, [...path, slot]);
+    return original.has(slot.replace('video', 'video_audio'));
   };
-  for (const [name,value] of Object.entries(replacements)) {
+  for (const [name, value] of Object.entries(replacements)) {
     if (referenceType(name) !== 'video') continue;
-    const paired = name.replace('video','video_audio');
+    const paired = name.replace('video', 'video_audio');
     if (original.has(paired) || hasSoundtrack(name)) names.add(paired);
   }
   const resolve = (name, path = []) => {
-    if(pairing.has(name))return {name,problem:pairing.get(name)};
-    if (path.includes(name)) return {name,problem:`Reference replacement cycle: ${[...path,name].join(' → ')}.`};
+    if (pairing.has(name)) return { name, problem: pairing.get(name) };
+    if (path.includes(name)) return { name, problem: `Reference replacement cycle: ${[...path, name].join(' → ')}.` };
     let replacement = replacements[name];
     if (!replacement && referenceType(name) === 'video_audio') {
-      const video = replacements[name.replace('video_audio','video')];
-      if (video) replacement = video.source ? {source:video.source.replace('video','video_audio')} : video;
+      const video = replacements[name.replace('video_audio', 'video')];
+      if (video) replacement = video.source ? { source: video.source.replace('video', 'video_audio') } : video;
     }
-    if (!replacement) return original.get(name) ?? {name,problem:`@${name} is not connected.`};
+    if (!replacement) return original.get(name) ?? { name, problem: `@${name} is not connected.` };
     if (replacement.source) {
-      if (referenceType(name) !== referenceType(replacement.source)||referenceMediaType(state,name)!==referenceMediaType(state,replacement.source)) return {name,problem:'Replacement must have the same reference type.'};
-      const source = resolve(replacement.source,[...path,name]);
-      return {...source,name,originalTitle:original.get(name)?.title,replaced:true,replacementSource:replacement.source};
+      if (referenceType(name) !== referenceType(replacement.source) || referenceMediaType(state, name) !== referenceMediaType(state, replacement.source)) return { name, problem: 'Replacement must have the same reference type.' };
+      const source = resolve(replacement.source, [...path, name]);
+      return { ...source, name, originalTitle: original.get(name)?.title, replaced: true, replacementSource: replacement.source };
     }
-    if(referenceMediaType(state,name)==='refmod_video')return {name,problem:'Replace a video RefMod with a matching video RefMod.'};
-    if (!replacement.file?.filename) return {name,problem:`@${name} has an invalid replacement file.`};
+    if (referenceMediaType(state, name) === 'refmod_video') return { name, problem: 'Replace a video RefMod with a matching video RefMod.' };
+    if (!replacement.file?.filename) return { name, problem: `@${name} has an invalid replacement file.` };
     const file = replacement.file;
-    return {name,title:file.filename,file:file.filename,mediaFile:file,
-      preview:referenceType(name) === 'image' ? viewUrl?.(file) : null,replaced:true};
+    return {
+      name, title: file.filename, file: file.filename, mediaFile: file,
+      preview: referenceType(name) === 'image' ? viewUrl?.(file) : null, replaced: true
+    };
   };
-  const result = {images:[],videos:[],audios:[],video_audios:[]};
+  const result = { images: [], videos: [], audios: [], video_audios: [] };
   for (const name of names) {
     const group = referenceGroup[referenceType(name)];
     if (group) result[group].push(resolve(name));
   }
-  for (const group of Object.values(result)) group.sort((a,b)=>Number(a.name.replace(/\D/g,''))-Number(b.name.replace(/\D/g,'')));
+  for (const group of Object.values(result)) group.sort((a, b) => Number(a.name.replace(/\D/g, '')) - Number(b.name.replace(/\D/g, '')));
   return result;
 }
 
@@ -788,14 +792,14 @@ export function applyImageDescription(state, slot, description) {
     state.reference_descriptions[slot] = structuredClone(description);
   }
   const text = description?.text ?? '';
-  const positions = new Map(state.boxes.map((box,index)=>[box.id,index]));
+  const positions = new Map(state.boxes.map((box, index) => [box.id, index]));
   for (const entity of state.bible?.entities ?? []) {
     let pictures = entity.pictures ?? [];
     const wording = refs => text || refs.map(name => `"@${name}"`).join(' and ');
     if (pictures.includes(slot) && entity.description !== slot) {
       entity.description = wording(pictures);
     }
-    for (const look of [...entity.looks ?? []].sort((a,b)=>(positions.get(a.from)??-1)-(positions.get(b.from)??-1))) {
+    for (const look of [...entity.looks ?? []].sort((a, b) => (positions.get(a.from) ?? -1) - (positions.get(b.from) ?? -1))) {
       if (look.pictures?.length) pictures = look.pictures;
       if (pictures.includes(slot)) look.description = wording(pictures);
     }
@@ -805,10 +809,10 @@ export function applyImageDescription(state, slot, description) {
     box.prompt = imageDescriptionPrompt(box.prompt, slot, text);
     const entities = (state.bible?.entities ?? []).filter(entity => {
       let pictures = entity.pictures ?? [];
-      for (const look of [...entity.looks ?? []].sort((a,b)=>(positions.get(a.from)??-1)-(positions.get(b.from)??-1)))
-        if (look.pictures?.length && positions.has(look.from) && positions.get(look.from) <= (positions.get(box.id)??-1)) pictures = look.pictures;
+      for (const look of [...entity.looks ?? []].sort((a, b) => (positions.get(a.from) ?? -1) - (positions.get(b.from) ?? -1)))
+        if (look.pictures?.length && positions.has(look.from) && positions.get(look.from) <= (positions.get(box.id) ?? -1)) pictures = look.pictures;
       return pictures.includes(slot);
-    }).map(entity=>entity.id);
+    }).map(entity => entity.id);
     imageDescriptionSource(box.source, slot, text, entities);
   }
 }
@@ -819,18 +823,18 @@ function invalidateReferenceDescriptions(state, slot) {
   do {
     changed = false;
     for (const name of [...affected]) {
-      if(referenceType(name)==='video'&&!affected.has(name.replace('video','video_audio'))) {
-        affected.add(name.replace('video','video_audio'));changed=true;
+      if (referenceType(name) === 'video' && !affected.has(name.replace('video', 'video_audio'))) {
+        affected.add(name.replace('video', 'video_audio')); changed = true;
       }
     }
-    for (const [target,value] of Object.entries(state.reference_replacements ?? {})) {
+    for (const [target, value] of Object.entries(state.reference_replacements ?? {})) {
       if (affected.has(value.source) && !affected.has(target)) { affected.add(target); changed = true; }
     }
   } while (changed);
   for (const name of affected) {
     if (referenceType(name) === 'image') applyImageDescription(state, name, null);
     if (state.reference_descriptions) delete state.reference_descriptions[name];
-    if (referenceType(name) === 'video' && state.reference_descriptions) delete state.reference_descriptions[name.replace('video','video_audio')];
+    if (referenceType(name) === 'video' && state.reference_descriptions) delete state.reference_descriptions[name.replace('video', 'video_audio')];
   }
 }
 
@@ -838,76 +842,76 @@ export function setReferenceReplacement(state, slot, replacement, pools) {
   if (!referenceType(slot)) throw new Error('Choose a valid reference.');
   if (!!replacement.source === !!replacement.file) throw new Error('Choose a reference or a file.');
   if (replacement.source && referenceType(slot) !== referenceType(replacement.source)) throw new Error('Replacement must have the same reference type.');
-  const replacements = {...state.reference_replacements,[slot]:structuredClone(replacement)};
-  if(referenceType(slot)==='video'&&replacements[slot.replace('video','video_audio')]?.source)
-    delete replacements[slot.replace('video','video_audio')];
-  const problem=soundtrackPairingProblems(replacements)[0]?.[1];
-  if(problem)throw new Error(problem);
-  const next = referencePools({...state,reference_replacements:replacements},pools);
-  const resolved = next[referenceGroup[referenceType(slot)]].find(ref=>ref.name===slot);
+  const replacements = { ...state.reference_replacements, [slot]: structuredClone(replacement) };
+  if (referenceType(slot) === 'video' && replacements[slot.replace('video', 'video_audio')]?.source)
+    delete replacements[slot.replace('video', 'video_audio')];
+  const problem = soundtrackPairingProblems(replacements)[0]?.[1];
+  if (problem) throw new Error(problem);
+  const next = referencePools({ ...state, reference_replacements: replacements }, pools);
+  const resolved = next[referenceGroup[referenceType(slot)]].find(ref => ref.name === slot);
   if (resolved.problem) throw new Error(resolved.problem);
   state.reference_replacements = replacements;
-  invalidateReferenceDescriptions(state,slot);
+  invalidateReferenceDescriptions(state, slot);
 }
 
 export function restoreReferenceReplacement(state, slot) {
-  const replacements={...state.reference_replacements};
+  const replacements = { ...state.reference_replacements };
   delete replacements[slot];
-  if(referenceType(slot)==='video'&&replacements[slot.replace('video','video_audio')]?.source)
-    delete replacements[slot.replace('video','video_audio')];
-  const problem=soundtrackPairingProblems(replacements)[0]?.[1];
-  if(problem)throw new Error(problem);
-  invalidateReferenceDescriptions(state,slot);
-  if (state.reference_replacements) state.reference_replacements=replacements;
+  if (referenceType(slot) === 'video' && replacements[slot.replace('video', 'video_audio')]?.source)
+    delete replacements[slot.replace('video', 'video_audio')];
+  const problem = soundtrackPairingProblems(replacements)[0]?.[1];
+  if (problem) throw new Error(problem);
+  invalidateReferenceDescriptions(state, slot);
+  if (state.reference_replacements) state.reference_replacements = replacements;
   if (!Object.keys(state.reference_replacements ?? {}).length) delete state.reference_replacements;
 }
 
 export function switchReference(state, from, to, pools) {
-  if(from===to || !referenceType(from) || referenceType(from)!==referenceType(to))
+  if (from === to || !referenceType(from) || referenceType(from) !== referenceType(to))
     throw new Error('Replacement must have the same reference type.');
-  const available=referencePools(state,pools);
-  const selected=available[referenceGroup[referenceType(to)]].find(ref=>ref.name===to);
-  if(!selected || selected.problem)throw new Error(selected?.problem ?? `@${to} is not connected.`);
-  const swaps={[from]:to};
-  if(referenceType(from)==='video') {
-    const oldAudio=from.replace('video','video_audio'),newAudio=to.replace('video','video_audio');
-    const used=[state.prompt,...state.boxes.map(box=>box.prompt)].some(prompt=>mentions(prompt).some(ref=>ref.name===oldAudio));
-    if(used&&!available.video_audios.some(ref=>ref.name===newAudio&&!ref.problem))
+  const available = referencePools(state, pools);
+  const selected = available[referenceGroup[referenceType(to)]].find(ref => ref.name === to);
+  if (!selected || selected.problem) throw new Error(selected?.problem ?? `@${to} is not connected.`);
+  const swaps = { [from]: to };
+  if (referenceType(from) === 'video') {
+    const oldAudio = from.replace('video', 'video_audio'), newAudio = to.replace('video', 'video_audio');
+    const used = [state.prompt, ...state.boxes.map(box => box.prompt)].some(prompt => mentions(prompt).some(ref => ref.name === oldAudio));
+    if (used && !available.video_audios.some(ref => ref.name === newAudio && !ref.problem))
       throw new Error(`@${to} needs a soundtrack to replace the used @${oldAudio}.`);
-    swaps[oldAudio]=newAudio;
+    swaps[oldAudio] = newAudio;
   }
   if (referenceType(from) === 'image') applyImageDescription(state, from, null);
-  const text=value=>value.replace(MENTION,(tag,kind,number)=> {
-    const replacement=swaps[`${kind.toLowerCase()}${Number(number)}`];
+  const text = value => value.replace(MENTION, (tag, kind, number) => {
+    const replacement = swaps[`${kind.toLowerCase()}${Number(number)}`];
     return replacement ? `@${replacement}` : tag;
   });
   // Only authored content is rewritten. Library definitions and generated media retain their original slots.
-  const rewrite=(value,key='')=> {
-    if(key==='voice_clip'&&swaps[value])return (state.voice_clips??[]).some(clip=>clip.slot===swaps[value]) ? swaps[value] : undefined;
-    if(typeof value==='string')return ['first','last','pictures','references','sources','source','audio_slot'].includes(key)
+  const rewrite = (value, key = '') => {
+    if (key === 'voice_clip' && swaps[value]) return (state.voice_clips ?? []).some(clip => clip.slot === swaps[value]) ? swaps[value] : undefined;
+    if (typeof value === 'string') return ['first', 'last', 'pictures', 'references', 'sources', 'source', 'audio_slot'].includes(key)
       ? swaps[value] ?? text(value) : text(value);
-    if(Array.isArray(value)) {
-      const values=value.map(item=>rewrite(item,key));
-      return values.every(item=>typeof item==='string'&&referenceType(item)) ? [...new Set(values)] : values;
+    if (Array.isArray(value)) {
+      const values = value.map(item => rewrite(item, key));
+      return values.every(item => typeof item === 'string' && referenceType(item)) ? [...new Set(values)] : values;
     }
-    if(record(value))return Object.fromEntries(Object.entries(value).map(([key,item])=>
-      [key,['id','from','box','cast','schedule','frame','file','image','filename','subfolder','type'].includes(key)?item:rewrite(item,key)]).filter(([,item])=>item!==undefined));
+    if (record(value)) return Object.fromEntries(Object.entries(value).map(([key, item]) =>
+      [key, ['id', 'from', 'box', 'cast', 'schedule', 'frame', 'file', 'image', 'filename', 'subfolder', 'type'].includes(key) ? item : rewrite(item, key)]).filter(([, item]) => item !== undefined));
     return value;
   };
-  state.prompt=text(state.prompt);
-  state.boxes=state.boxes.map(box=> {
-    const next=rewrite(box);
-    for(const key of ['plate_changes','plate_edits'])if(box[key])next[key]=box[key].filter(item=>!swaps[item.slot]);
+  state.prompt = text(state.prompt);
+  state.boxes = state.boxes.map(box => {
+    const next = rewrite(box);
+    for (const key of ['plate_changes', 'plate_edits']) if (box[key]) next[key] = box[key].filter(item => !swaps[item.slot]);
     return next;
   });
-  if(state.bible)state.bible=rewrite(state.bible);
-  if(state.bridges)state.bridges=rewrite(state.bridges);
-  if(state.timed_text?.audio_slot)state.timed_text.audio_slot=swaps[state.timed_text.audio_slot]??state.timed_text.audio_slot;
-  const disabled=new Set(state.disabled_refs ?? []);
-  for(const [old,name] of Object.entries(swaps)){disabled.add(old);disabled.delete(name);}
-  if(referenceType(to)==='video_audio')disabled.delete(to.replace('video_audio','video'));
-  state.disabled_refs=[...disabled];
-  for(const ref of state.refmods ?? [])if(Object.values(swaps).includes(ref.slot)&&(ref.strength??1)<=0)ref.strength=1;
+  if (state.bible) state.bible = rewrite(state.bible);
+  if (state.bridges) state.bridges = rewrite(state.bridges);
+  if (state.timed_text?.audio_slot) state.timed_text.audio_slot = swaps[state.timed_text.audio_slot] ?? state.timed_text.audio_slot;
+  const disabled = new Set(state.disabled_refs ?? []);
+  for (const [old, name] of Object.entries(swaps)) { disabled.add(old); disabled.delete(name); }
+  if (referenceType(to) === 'video_audio') disabled.delete(to.replace('video_audio', 'video'));
+  state.disabled_refs = [...disabled];
+  for (const ref of state.refmods ?? []) if (Object.values(swaps).includes(ref.slot) && (ref.strength ?? 1) <= 0) ref.strength = 1;
 }
 
 export function withoutDisabledRefs(text, state) {
@@ -924,13 +928,13 @@ export function referenceTags(images, audios = [], refmods = [], plates = {}, vi
   const rawImages = sort(images.filter(name => !assigned.has(name)));
   const rawAudios = sort(audios.filter(name => !assigned.has(name)));
   const rawVideos = sort(videos), soundtracks = sort(videoAudios);
-  const tags = [...rawImages.map((name, i) => ({name, tag: `<Picture ${i + 1}>`})),
-    ...rawVideos.map((name, i) => ({name, tag: `<Video ${i + 1}>`})),
-    ...[...soundtracks, ...rawAudios].map((name, i) => ({name, tag: `<Audio ${i + 1}>`}))];
-  const counters = {image: rawImages.length, audio: soundtracks.length + rawAudios.length, video: rawVideos.length};
+  const tags = [...rawImages.map((name, i) => ({ name, tag: `<Picture ${i + 1}>` })),
+  ...rawVideos.map((name, i) => ({ name, tag: `<Video ${i + 1}>` })),
+  ...[...soundtracks, ...rawAudios].map((name, i) => ({ name, tag: `<Audio ${i + 1}>` }))];
+  const counters = { image: rawImages.length, audio: soundtracks.length + rawAudios.length, video: rawVideos.length };
   for (const name of [...sort(images), ...sort(audios)]) {
     const ref = assigned.get(name);
-    if (ref) tags.push({name, tag: `<${{image: 'Picture', video: 'Video', audio: 'Audio'}[ref.kind]} ${++counters[ref.kind]}>`});
+    if (ref) tags.push({ name, tag: `<${{ image: 'Picture', video: 'Video', audio: 'Audio' }[ref.kind]} ${++counters[ref.kind]}>` });
   }
   return tags;
 }
@@ -945,10 +949,10 @@ export function describeBox(state, index, connected, context) {
   const found = mentions(text);
   const images = found.filter((item) => item.kind === 'image').map((item) => item.name);
   const audios = [...new Set([...found.filter((item) => item.kind === 'audio').map((item) => item.name),
-    ...activeAudioClips(state, index).map(clip => clip.slot)])];
+  ...activeAudioClips(state, index).map(clip => clip.slot)])];
   const videoAudios = found.filter(item => item.kind === 'video_audio').map(item => item.name);
   const videos = [...new Set([...found.filter(item => item.kind === 'video').map(item => item.name),
-    ...videoAudios.map(name => name.replace('video_audio', 'video'))])];
+  ...videoAudios.map(name => name.replace('video_audio', 'video'))])];
   const mods = new Map(effectiveRefmods(state).map(ref => [ref.slot, ref]));
   const problems = [];
   for (const memory of memorySources(state, index)) {
@@ -960,7 +964,7 @@ export function describeBox(state, index, connected, context) {
   if (!text) problems.push('The prompt is empty.');
   for (const item of found) {
     if (connected.problems?.has(item.name)) problems.push(connected.problems.get(item.name));
-    const pool = connected[{image: 'images', audio: 'audios', video: 'videos', video_audio: 'video_audios'}[item.kind]];
+    const pool = connected[{ image: 'images', audio: 'audios', video: 'videos', video_audio: 'video_audios' }[item.kind]];
     if (!pool?.has(item.name) && !mods.has(item.name)) problems.push(`@${item.name} is not connected.`);
     if (connected.conflicts?.has(item.name)) problems.push(`@${item.name} has both an image input and a RefMod.`);
   }
@@ -985,20 +989,20 @@ export function describeBox(state, index, connected, context) {
     const lastPresent = !!(last || acceptedLast) && (!fresh || box.frames > 1 || (last && images.includes(last)));
     const firstPresent = Number(!!(first || acceptedFirst));
     const endpointCount = firstPresent + Number(lastPresent);
-    if (first) tags.push({name:first,tag:'<Picture 1>'});
-    if (last && lastPresent && last !== first) tags.push({name:last,tag:`<Picture ${firstPresent + 1}>`});
-    const ordinary = images.filter(name => !mods.has(name) && !keyframes.includes(name)).sort((a,b) => slotNumber(a)-slotNumber(b));
-    const counters = {image:endpointCount*2,video:0,audio:0};
-    for (const name of ordinary) tags.push({name,tag:'<Picture ' + (++counters.image) + '>'});
-    const rawAudios = audios.filter(name => !mods.has(name)).sort((a,b) => slotNumber(a)-slotNumber(b));
-    for (const name of rawAudios) tags.push({name,tag:'<Audio ' + (++counters.audio) + '>'});
+    if (first) tags.push({ name: first, tag: '<Picture 1>' });
+    if (last && lastPresent && last !== first) tags.push({ name: last, tag: `<Picture ${firstPresent + 1}>` });
+    const ordinary = images.filter(name => !mods.has(name) && !keyframes.includes(name)).sort((a, b) => slotNumber(a) - slotNumber(b));
+    const counters = { image: endpointCount * 2, video: 0, audio: 0 };
+    for (const name of ordinary) tags.push({ name, tag: '<Picture ' + (++counters.image) + '>' });
+    const rawAudios = audios.filter(name => !mods.has(name)).sort((a, b) => slotNumber(a) - slotNumber(b));
+    for (const name of rawAudios) tags.push({ name, tag: '<Audio ' + (++counters.audio) + '>' });
     if (rawAudios.length > MAX_REF_AUDIOS) problems.push(`${rawAudios.length} audios; H3 takes at most ${MAX_REF_AUDIOS}.`);
-    const labels = {image:'Picture',video:'Video',audio:'Audio'};
-    const selected = [...new Set([...images,...audios])].filter(name => mods.has(name))
-      .sort((a,b) => Number(a.startsWith('audio'))-Number(b.startsWith('audio')) || slotNumber(a)-slotNumber(b));
-    for(const name of selected) {
-      const kind=mods.get(name).kind;
-      tags.push({name,tag:'<' + labels[kind] + ' ' + (++counters[kind]) + '>'});
+    const labels = { image: 'Picture', video: 'Video', audio: 'Audio' };
+    const selected = [...new Set([...images, ...audios])].filter(name => mods.has(name))
+      .sort((a, b) => Number(a.startsWith('audio')) - Number(b.startsWith('audio')) || slotNumber(a) - slotNumber(b));
+    for (const name of selected) {
+      const kind = mods.get(name).kind;
+      tags.push({ name, tag: '<' + labels[kind] + ' ' + (++counters[kind]) + '>' });
     }
   } else if (!audios.length && !videos.length && images.every((name) => !mods.has(name) && keyframes.includes(name))) {
     mode = keyframes.length ? 'FLF2VA' : 'T2VA';
@@ -1032,7 +1036,7 @@ export function describeBox(state, index, connected, context) {
 export function flfConversion(state, index, connected, context) {
   const trial = structuredClone(state);
   trial.boxes[index].flf_refmods = true;
-  if (describeBox(trial, index, connected, context).mode === 'FLF2VA') return {ok: true, reason: ''};
+  if (describeBox(trial, index, connected, context).mode === 'FLF2VA') return { ok: true, reason: '' };
   const found = mentions(assemblePrompt(state, index));
   const list = names => [...new Set(names)].map(name => `@${name}`).join(', ');
   const reasons = [];
@@ -1041,16 +1045,16 @@ export function flfConversion(state, index, connected, context) {
   const box = state.boxes[index];
   if (isFresh(state, index) && !(box.first && referenceEnabled(state, box.first)) && !acceptedGuideFrames(state, index, context).includes(0))
     reasons.push('A fresh clip needs a First frame: choose one under First & last frame or accept a First guide.');
-  return {ok: false, reason: reasons.join(' ') || 'This clip still runs as REF2VA with FLF2VA + cached RefMods on.'};
+  return { ok: false, reason: reasons.join(' ') || 'This clip still runs as REF2VA with FLF2VA + cached RefMods on.' };
 }
 
 export function seconds(frames) {
-  return (frames / FPS).toFixed(1);
+  return (Number(frames ?? 0) / (FPS || 24)).toFixed(1);
 }
 
 export function lengthLabel(state, index, context) {
   const { frames } = state.boxes[index];
-  const time = `${(frames / FPS).toFixed(2)} s`;
+  const time = `${(Number(frames ?? 0) / (FPS || 24)).toFixed(2)} s`;
   const dropped = droppedFrames(state, index);
   const generates = dropped ? ` · H3 generates ${frames + dropped}` : '';
   if (isFresh(state, index)) return `${time} · ${frames} frame${frames === 1 ? '' : 's'}${generates}`;

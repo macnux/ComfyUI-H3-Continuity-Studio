@@ -247,17 +247,18 @@ export class AudioLanes {
       item.tabIndex = 0; item.setAttribute('role', 'button');
       const inFullVideo = clip.in_full_video === true && !!clip.file;
       item.setAttribute('aria-label', `Edit @${clip.slot} audio clip${inFullVideo ? ', in the full video' : ''}`);
-      item.title = `${title} · ${clip.duration.toFixed(3)} s · original speed\nDrag to move · edges trim · Shift-drag selects a different source window`
+      item.title = `${title} · ${(clip.duration ?? 0).toFixed(3)} s · original speed\nDrag to move · edges trim · Shift-drag selects a different source window`
         + (inFullVideo ? '\nIn the full video' : '');
       if (!reference?.replaced) {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 256 36'); svg.setAttribute('preserveAspectRatio', 'none');
         svg.setAttribute('aria-hidden', 'true');
         const peaks = clip.peaks ?? [];
+        clip.source_duration ??= clip.duration ?? 0;
         const max = Math.max(.001, ...peaks);
         for (let i = 0; i < 128; i++) {
           const source = clip.source_start + (i + .5) / 128 * clip.duration;
-          const peak = peaks[Math.min(peaks.length - 1, Math.floor(source / clip.source_duration * peaks.length))] ?? 0;
+          const peak = peaks[Math.min(peaks.length - 1, Math.floor(source / (clip.source_duration || 1) * peaks.length))] ?? 0;
           const rect = document.createElementNS(svg.namespaceURI, 'rect');
           const height = Math.max(1, 32 * peak / max);
           for (const [key, value] of Object.entries({x: i * 2, y: (36 - height) / 2, width: 1, height})) rect.setAttribute(key, value);
@@ -265,7 +266,7 @@ export class AudioLanes {
         }
         item.append(svg);
       }
-      item.append(node('span', 'h3ct-audio-label', `@${clip.slot} · ${title} · ${clip.duration.toFixed(2)} s${reference?.replaced ? ' · Replaced source' : ''}${clip.locked === true && clip.file ? ' · locked' : ''}`));
+      item.append(node('span', 'h3ct-audio-label', `@${clip.slot} · ${title} · ${(clip.duration ?? 0).toFixed(2)} s${reference?.replaced ? ' · Replaced source' : ''}${clip.locked === true && clip.file ? ' · locked' : ''}`));
       for (const edge of ['left', 'right']) {
         const handle = node('div', `h3ct-audio-handle ${edge}`);
         handle.title = `Drag to trim the ${edge} edge`;
@@ -370,7 +371,7 @@ export class AudioLanes {
     for (const [key, label] of [['start', 'Video start (s)'], ['source_start', 'Source in (s)'], ['duration', 'Length (s)']]) {
       const field = node('label', 'h3ct-field', label);
       const input = node('input', 'h3ct-number'); input.type = 'number'; input.min = key === 'duration' ? .001 : 0; input.step = '0.001';
-      input.value = Number(clip[key].toFixed(6)); input.setAttribute('aria-label', label);
+      input.value = Number(((clip[key] ?? 0)).toFixed(6)); input.setAttribute('aria-label', label);
       input.addEventListener('change', () => {
         const value = Number(input.value);
         if (!Number.isFinite(value) || value < 0 || (key === 'duration' && value === 0)) { input.value = clip[key]; return; }
@@ -395,7 +396,8 @@ export class AudioLanes {
     this.settings.append(description);
     this.renderPlayer(file, clip);
     const video = model.totalFrames(this.editor.state) / model.FPS;
-    this.settings.append(node('div', 'h3ct-hint', (reference?.replaced ? 'Replaced source · current clip timing preserved. ' : `${clip.source_duration.toFixed(3)} s source · original playback speed. `)
+    clip.source_duration ??= clip.duration ?? 0;
+    this.settings.append(node('div', 'h3ct-hint', (reference?.replaced ? 'Replaced source · current clip timing preserved. ' : `${(clip.source_duration ?? clip.duration ?? 0).toFixed(3)} s source · original playback speed. `)
       + 'Shift-drag the clip to change its source window. '
       + (clip.start > 0 || clip.start + clip.duration < video ? 'Uncovered time uses silence in this reference.' : '')));
   }

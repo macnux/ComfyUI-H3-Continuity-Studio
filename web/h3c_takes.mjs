@@ -2,11 +2,13 @@
 // Play, Use and Delete, Delete other takes and Delete unusable takes in this sequence. Plain DOM without ComfyUI
 // imports; the editor's host sends the requests, and Play asks the Studio to show the take.
 import * as model from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
-import {parseJSON, stringifyJSON, seedValue} from './h3c_project.mjs?v=20261031-held-jobs-1';
+import { parseJSON, stringifyJSON, seedValue } from './h3c_project.mjs?v=20261031-held-jobs-1';
 
 export const MAX_TAKES = 10;
-const TAKES_URLS = {list: '/h3c/timeline/takes', use: '/h3c/timeline/takes/use', delete: '/h3c/timeline/takes/delete',
-  rate: '/h3c/timeline/takes/rate'};
+const TAKES_URLS = {
+  list: '/h3c/timeline/takes', use: '/h3c/timeline/takes/use', delete: '/h3c/timeline/takes/delete',
+  rate: '/h3c/timeline/takes/rate'
+};
 const STYLE_ID = 'h3ctk-style';
 const CSS = `
 .h3ctk-root { display: flex; flex-direction: column; gap: 5px; padding: 6px 8px; min-width: 0;
@@ -60,9 +62,10 @@ const when = (created) => (typeof created === 'string' && created.length >= 16
 const seedText = (seed) => (seedValue(seed) !== undefined ? `seed ${seed}` : 'seed not recorded');
 
 function size(bytes) {
-  if (bytes < 1024 ** 2) return `${Math.round(bytes / 1024)} KB`;
-  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-  return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+  const num = Number(bytes) || 0;
+  if (num < 1024 ** 2) return `${Math.round(num / 1024)} KB`;
+  if (num < 1024 ** 3) return `${(num / 1024 ** 2).toFixed(1)} MB`;
+  return `${(num / 1024 ** 3).toFixed(1)} GB`;
 }
 
 // Where a take came from: "from box 2’s take of 11-04 07:30 (in use)", or '' for a take that carried nothing or
@@ -78,7 +81,7 @@ export function marksText(rating = 0, tag = '') {
   return [stars, tag ? (stars ? tag : `tag: ${tag}`) : ''].filter(Boolean).join(' · ');
 }
 
-const counted = ({count, bytes}) => `${count} ${count === 1 ? 'take' : 'takes'} (${size(bytes)})`;
+const counted = ({ count, bytes }) => `${count} ${count === 1 ? 'take' : 'takes'} (${size(bytes)})`;
 
 export function renderLabel(number, count) {
   return count > 1 ? `Generate ${count} takes` : `Generate clip ${number}`;
@@ -107,7 +110,7 @@ export class TakesClient {
   }
 
   statusBody(text) {
-    return JSON.stringify({...JSON.parse(text), follow: this.pending === 0});
+    return JSON.stringify({ ...JSON.parse(text), follow: this.pending === 0 });
   }
 
   watch(request) {
@@ -124,7 +127,7 @@ export class TakesClient {
       if (moves) await Promise.allSettled([...this.inFlight]);
       return await this.post(TAKES_URLS[action], body);
     } catch (error) {
-      return {ok: false, error: `Takes unavailable: ${error?.message ?? error}`};
+      return { ok: false, error: `Takes unavailable: ${error?.message ?? error}` };
     } finally {
       if (moves) this.pending -= 1;
     }
@@ -146,11 +149,11 @@ class Section {
     head.append(this.titleEl);
     this.inUseEl = el('p', 'h3ctk-in-use');
     this.rowsEl = el('div');
-    this.otherButton = button('Delete other takes', '', () => panel.remove(this, {scope: 'other'}));
+    this.otherButton = button('Delete other takes', '', () => panel.remove(this, { scope: 'other' }));
     this.actions = el('div', 'h3ctk-head');
     this.actions.append(this.otherButton);
     if (!bridge) {
-      this.unusableButton = button('Delete unusable takes in this sequence', '', () => panel.remove(this, {scope: 'unusable'}));
+      this.unusableButton = button('Delete unusable takes in this sequence', '', () => panel.remove(this, { scope: 'unusable' }));
       this.actions.append(this.unusableButton);
     }
     this.confirmEl = el('div', 'h3ctk-confirm');
@@ -191,7 +194,7 @@ class Section {
     this.confirmEl.hidden = !this.confirm;
     this.askEl.textContent = this.confirm?.text ?? '';
     this.yesButton.textContent = this.confirm?.label ?? '';
-    const note = part.error ? {text: part.error, problem: true} : this.note;
+    const note = part.error ? { text: part.error, problem: true } : this.note;
     this.noteEl.textContent = note?.text ?? '';
     this.noteEl.classList.toggle('problem', !!note?.problem);
     this.noteEl.hidden = !note;
@@ -207,7 +210,7 @@ class Section {
     const use = button('Use', off || (take.usable ? 'Put this take in place of the take in use' : why.textContent),
       () => panel.askUse(this, take));
     use.disabled = !!off || !take.usable;
-    const remove = button('Delete', off || 'Delete this take’s files', () => panel.remove(this, {scope: 'take', take: take.folder}));
+    const remove = button('Delete', off || 'Delete this take’s files', () => panel.remove(this, { scope: 'take', take: take.folder }));
     remove.disabled = !!off || panel.editor.host.projectAttached === true;
     remove.hidden = panel.editor.host.projectAttached === true;
     const from = this.bridge ? '' : fromText(take.carried_from, panel.editor.selected + 1, before);
@@ -271,12 +274,12 @@ export class TakesPanel {
 
   async ask(boxId, status = this.editor.status) {
     const ticket = ++this.ticket;
-    this.asked = {status, box: boxId};
-    const found = await this.editor.host.takes('list', {box: boxId});
+    this.asked = { status, box: boxId };
+    const found = await this.editor.host.takes('list', { box: boxId });
     if (ticket !== this.ticket) return;
-    this.list = {box: boxId, found};
+    this.list = { box: boxId, found };
     this.show();
-    this.root.dispatchEvent(new CustomEvent('h3c-takes-listed', {bubbles:true}));
+    this.root.dispatchEvent(new CustomEvent('h3c-takes-listed', { bubbles: true }));
   }
 
   show() {
@@ -288,13 +291,13 @@ export class TakesPanel {
     }
     const found = this.list?.box === box?.id ? this.list.found : null;
     const off = editor.stale || editor.status?.ok !== true ? WAIT : found?.busy ? BUSY : '';
-    this.boxSection.show(found && (found.ok ? found.box : {error: found.error}), off);
+    this.boxSection.show(found && (found.ok ? found.box : { error: found.error }), off);
     this.bridgeSection.show(found?.ok ? found.bridge : null, off);
   }
 
   setNote(section, boxId, text, problem = false) {
     if (this.editor.box()?.id !== boxId) return;
-    section.note = {text, problem};
+    section.note = { text, problem };
     this.show();
   }
 
@@ -302,14 +305,16 @@ export class TakesPanel {
     const number = this.editor.selected + 1;
     const label = `${section.bridge ? `Bridge before box ${number}` : `Box ${number}`} · take rendered ${when(take.created)}`
       + ` · ${seedText(take.seed)}`;
-    section.root.dispatchEvent(new CustomEvent('h3c-play-take', {bubbles: true,
-      detail: {box: this.list.box, bridge: section.bridge, video: take.video, label}}));
+    section.root.dispatchEvent(new CustomEvent('h3c-play-take', {
+      bubbles: true,
+      detail: { box: this.list.box, bridge: section.bridge, video: take.video, label }
+    }));
   }
 
   askUse(section, take) {
     const warnings = section.bridge ? [] : this.list.found.box.warnings ?? [];
     if (!warnings.length) return this.use(section, take);
-    section.confirm = {text: warnings.join(' '), label: 'Use this take', go: () => this.use(section, take)};
+    section.confirm = { text: warnings.join(' '), label: 'Use this take', go: () => this.use(section, take) };
     this.show();
   }
 
@@ -326,8 +331,10 @@ export class TakesPanel {
     // The Studio keeps plain keys from ComfyUI, so a Use pressed from the keyboard comes with no click that records the
     // edits before it, such as Render box's new seed. Unless they are recorded first, the Use's Undo also undoes them.
     editor.host.undoStep?.();
-    await this.change(section, 'use', {box: boxId, bridge: section.bridge, take: take.folder, created: take.created,
-      timeline: stringifyJSON(timeline)}, (found) => {
+    await this.change(section, 'use', {
+      box: boxId, bridge: section.bridge, take: take.folder, created: take.created,
+      timeline: stringifyJSON(timeline)
+    }, (found) => {
       if (!found?.ok) return this.setNote(section, boxId, found?.error ?? 'Takes unavailable.', true);
       const live = target(editor.state);
       if (live) live.seed = take.seed;
@@ -341,7 +348,7 @@ export class TakesPanel {
 
   async rate(section, take, rating, tag) {
     const boxId = this.list.box;
-    const found = await this.editor.host.takes('rate', {created: take.created, rating, tag});
+    const found = await this.editor.host.takes('rate', { created: take.created, rating, tag });
     if (!found?.ok) return this.setNote(section, boxId, found?.error ?? 'Takes unavailable.', true);
     if (this.editor.box()?.id === boxId) this.ask(boxId);
   }
@@ -349,17 +356,17 @@ export class TakesPanel {
   // Counts what a delete would remove, then asks before removing it.
   async remove(section, request) {
     const boxId = this.list.box;
-    const body = {...request, ...(request.scope === 'other' ? {box: boxId, bridge: section.bridge} : {})};
-    const found = await this.editor.host.takes('delete', {...body, apply: false});
+    const body = { ...request, ...(request.scope === 'other' ? { box: boxId, bridge: section.bridge } : {}) };
+    const found = await this.editor.host.takes('delete', { ...body, apply: false });
     if (!found?.ok) return this.setNote(section, boxId, found?.error ?? 'Takes unavailable.', true);
     if (!found.count) return this.setNote(section, boxId, 'No takes to delete.');
-    section.confirm = {text: `Delete ${counted(found)}? This can’t be undone.`, label: 'Delete', go: () => this.removeNow(section, boxId, body)};
+    section.confirm = { text: `Delete ${counted(found)}? This can’t be undone.`, label: 'Delete', go: () => this.removeNow(section, boxId, body) };
     this.show();
   }
 
   async removeNow(section, boxId, body) {
     section.confirm = null;
-    await this.change(section, 'delete', {...body, apply: true}, (found) => (found?.ok
+    await this.change(section, 'delete', { ...body, apply: true }, (found) => (found?.ok
       ? this.setNote(section, boxId, `Deleted ${counted(found)}.`)
       : this.setNote(section, boxId, found?.error ?? 'Takes unavailable.', true)));
     if (this.editor.box()?.id === boxId) this.ask(boxId);
@@ -368,11 +375,11 @@ export class TakesPanel {
   // A request that moves or removes take files: the player lets go of its video first, and takes it back after.
   async change(section, action, body, done) {
     this.show();
-    section.root.dispatchEvent(new CustomEvent('h3c-takes-changing', {bubbles: true}));
+    section.root.dispatchEvent(new CustomEvent('h3c-takes-changing', { bubbles: true }));
     try {
       done(await this.editor.host.takes(action, body));
     } finally {
-      section.root.dispatchEvent(new CustomEvent('h3c-takes-changed', {bubbles: true}));
+      section.root.dispatchEvent(new CustomEvent('h3c-takes-changed', { bubbles: true }));
     }
   }
 }

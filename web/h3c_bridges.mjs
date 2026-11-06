@@ -66,7 +66,7 @@ function injectStyle() {
 }
 
 const sentence = (note) => `${note.charAt(0).toUpperCase()}${note.slice(1)}.`;
-const clock = (frames) => (frames / model.FPS).toFixed(2);
+const clock = (frames) => (Number(frames ?? 0) / (model.FPS || 24)).toFixed(2);
 const span = (start, end) => `${clock(start)}–${clock(end)} s`;
 
 // The replacement panel's state line for its status `item`; `problem` is the editor's own reason, first.

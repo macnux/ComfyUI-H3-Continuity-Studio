@@ -76,7 +76,7 @@ export function checkState(check, numberOf = () => null) {
   }
   const holds = Array.isArray(check.holds) ? check.holds : [];
   for (const hold of holds) {
-    const where = hold.join ? 'at the join' : `at ${(hold.start_ms / 1000).toFixed(1)} s`;
+    const where = hold.join ? 'at the join' : `at ${((Number(hold.start_ms) || 0) / 1000).toFixed(1)} s`;
     lines.push(`Holds still: ${hold.frames} frames ${where}.`);
   }
   return {state, lines, retake: !!(check.problems?.length || check.error || words || holds.length)};

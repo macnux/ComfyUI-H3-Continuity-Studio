@@ -966,8 +966,9 @@ export class CastPage {
       const play = button(playing ? 'Stop' : 'Play', playing ? 'Stop the voice clip' : `Play ${entity.name}’s voice clip`,
         () => this.togglePlay(clip));
       play.dataset.key = 'voice-clip-play';
-      actions.append(el('span', 'h3cc-clip', length == null ? clip.file.filename
-        : `${clip.file.filename} · ${length.toFixed(1)} s`), play);
+      actions.append(el('span', 'h3cc-clip', (typeof length === 'number' && Number.isFinite(length))
+        ? `${clip?.file?.filename || 'Audio'} · ${length.toFixed(1)} s`
+        : (clip?.file?.filename || 'Audio')), play);
     }
     const title = clip ? `Upload another file for ${entity.name}’s voice; the clips keep @${clip.slot}`
       : `Upload a recording of ${entity.name}’s voice, or drop one here; the clips where ${entity.name} speaks send it to H3`;
