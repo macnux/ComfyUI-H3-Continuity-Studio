@@ -1,7 +1,7 @@
 // Dialogue cues: a recording's exact words at its own source times, mirroring h3_continuity/dialogue.py. Boxes speak
 // them as <d> lines, and replacement bridges keep the footage where someone speaks on screen. The pure helpers seed
 // cues from a transcript or a Story and compute the check key; DialoguePanel edits them on the Audio page.
-import * as model from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
+import * as model from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
 
 export const PORTRAYALS = [['on_screen', 'On screen'], ['voiceover', 'Voiceover'], ['unknown', 'Unknown']];
 const SLOTS = ['audio1', 'audio2', 'audio3'];
@@ -165,7 +165,7 @@ export function cuesFromStory(state, clip, existing, context) {
 }
 
 const span = (sequence) => (Array.isArray(sequence) && sequence[0] != null && sequence[1] != null)
-  ? `${Number(sequence[0]).toFixed(2)}–${Number(sequence[1]).toFixed(2)} s`
+  ? `${(Number(sequence[0]) || 0).toFixed(2)}–${(Number(sequence[1]) || 0).toFixed(2)} s`
   : '0.00–0.00 s';
 
 // The server's view of a cue (an item of status.dialogue.cues), in a sentence.
@@ -324,7 +324,7 @@ export class DialoguePanel {
 
   timeInput(label, value, onChange) {
     const input = el('input', 'h3ct-number');
-    input.type = 'number'; input.min = '0'; input.step = '0.01'; input.value = String(Number((value ?? 0).toFixed(3)));
+    input.type = 'number'; input.min = '0'; input.step = '0.01'; input.value = String(Number(((Number(value) || 0)).toFixed(3)));
     input.setAttribute('aria-label', label);
     input.addEventListener('change', () => onChange(Number(input.value)));
     return input;

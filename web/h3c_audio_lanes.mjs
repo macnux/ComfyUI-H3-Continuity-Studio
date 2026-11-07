@@ -1,5 +1,5 @@
-import * as model from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
-import { importWhisper, validateTimedText, setTextSync, textClock, projectTimedText } from './h3c_timed_text.mjs?v=20261011-reference-preparation-1';
+import * as model from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
+import { importWhisper, validateTimedText, setTextSync, textClock, projectTimedText } from './h3c_timed_text.mjs?v=20261107-safe-duration-4';
 
 const node = (tag, cls, text) => {
   const item = document.createElement(tag);
@@ -247,7 +247,7 @@ export class AudioLanes {
       item.tabIndex = 0; item.setAttribute('role', 'button');
       const inFullVideo = clip.in_full_video === true && !!clip.file;
       item.setAttribute('aria-label', `Edit @${clip.slot} audio clip${inFullVideo ? ', in the full video' : ''}`);
-      item.title = `${title} · ${(clip.duration ?? 0).toFixed(3)} s · original speed\nDrag to move · edges trim · Shift-drag selects a different source window`
+      item.title = `${title} · ${(Number(clip?.duration) || 0).toFixed(3)} s · original speed\nDrag to move · edges trim · Shift-drag selects a different source window`
         + (inFullVideo ? '\nIn the full video' : '');
       if (!reference?.replaced) {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -266,7 +266,7 @@ export class AudioLanes {
         }
         item.append(svg);
       }
-      item.append(node('span', 'h3ct-audio-label', `@${clip.slot} · ${title} · ${(clip.duration ?? 0).toFixed(2)} s${reference?.replaced ? ' · Replaced source' : ''}${clip.locked === true && clip.file ? ' · locked' : ''}`));
+      item.append(node('span', 'h3ct-audio-label', `@${clip.slot} · ${title} · ${(Number(clip?.duration) || 0).toFixed(2)} s${reference?.replaced ? ' · Replaced source' : ''}${clip.locked === true && clip.file ? ' · locked' : ''}`));
       for (const edge of ['left', 'right']) {
         const handle = node('div', `h3ct-audio-handle ${edge}`);
         handle.title = `Drag to trim the ${edge} edge`;
@@ -371,7 +371,7 @@ export class AudioLanes {
     for (const [key, label] of [['start', 'Video start (s)'], ['source_start', 'Source in (s)'], ['duration', 'Length (s)']]) {
       const field = node('label', 'h3ct-field', label);
       const input = node('input', 'h3ct-number'); input.type = 'number'; input.min = key === 'duration' ? .001 : 0; input.step = '0.001';
-      input.value = Number(((clip[key] ?? 0)).toFixed(6)); input.setAttribute('aria-label', label);
+      input.value = Number(((Number(clip?.[key]) || 0)).toFixed(6)); input.setAttribute('aria-label', label);
       input.addEventListener('change', () => {
         const value = Number(input.value);
         if (!Number.isFinite(value) || value < 0 || (key === 'duration' && value === 0)) { input.value = clip[key]; return; }
@@ -397,7 +397,7 @@ export class AudioLanes {
     this.renderPlayer(file, clip);
     const video = model.totalFrames(this.editor.state) / model.FPS;
     clip.source_duration ??= clip.duration ?? 0;
-    this.settings.append(node('div', 'h3ct-hint', (reference?.replaced ? 'Replaced source · current clip timing preserved. ' : `${(clip.source_duration ?? clip.duration ?? 0).toFixed(3)} s source · original playback speed. `)
+    this.settings.append(node('div', 'h3ct-hint', (reference?.replaced ? 'Replaced source · current clip timing preserved. ' : `${(Number(clip?.source_duration ?? clip?.duration) || 0).toFixed(3)} s source · original playback speed. `)
       + 'Shift-drag the clip to change its source window. '
       + (clip.start > 0 || clip.start + clip.duration < video ? 'Uncovered time uses silence in this reference.' : '')));
   }

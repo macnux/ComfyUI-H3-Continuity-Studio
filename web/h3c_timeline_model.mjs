@@ -1,9 +1,9 @@
-import { reconcileSceneAnchors } from './h3c_still_scene.mjs?v=20261011-reference-preparation-1';
+import { reconcileSceneAnchors } from './h3c_still_scene.mjs?v=20261107-safe-duration-4';
 // H3 Timeline editor model: the timeline JSON, lengths on the H3 frame grid, edits, and the rules that
 // decide how a box runs. Mirrors h3_continuity/timeline.py.
-import { parseJSON, stringifyJSON, seedValue } from './h3c_project.mjs?v=20261031-held-jobs-1';
-import { imageDescriptionPrompt, imageDescriptionSource } from './h3c_image_descriptions.mjs?v=20261010-image-descriptions-1';
-import { acceptedGuideFrames } from './h3c_shot_preview.mjs?v=20261105-still-quality-1';
+import { parseJSON, stringifyJSON, seedValue } from './h3c_project.mjs?v=20261107-safe-duration-4';
+import { imageDescriptionPrompt, imageDescriptionSource } from './h3c_image_descriptions.mjs?v=20261107-safe-duration-4';
+import { acceptedGuideFrames } from './h3c_shot_preview.mjs?v=20261107-safe-duration-4';
 export const FPS = 24;
 export const MAX_FRAMES = 362;
 export const GRID = 17;
@@ -1049,12 +1049,12 @@ export function flfConversion(state, index, connected, context) {
 }
 
 export function seconds(frames) {
-  return (Number(frames ?? 0) / (FPS || 24)).toFixed(1);
+  return ((Number(frames) || 0) / (FPS || 24)).toFixed(1);
 }
 
 export function lengthLabel(state, index, context) {
   const { frames } = state.boxes[index];
-  const time = `${(Number(frames ?? 0) / (FPS || 24)).toFixed(2)} s`;
+  const time = `${((Number(frames) || 0) / (FPS || 24)).toFixed(2)} s`;
   const dropped = droppedFrames(state, index);
   const generates = dropped ? ` · H3 generates ${frames + dropped}` : '';
   if (isFresh(state, index)) return `${time} · ${frames} frame${frames === 1 ? '' : 's'}${generates}`;

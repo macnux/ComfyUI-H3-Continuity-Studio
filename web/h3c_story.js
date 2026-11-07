@@ -9,18 +9,18 @@
 // Share the Timeline's helper revision so cached .mjs files cannot mix frontend versions.
 import { app } from '../../scripts/app.js';
 import { api } from '../../scripts/api.js';
-import { mountSavedState } from './h3c_saved_state.mjs?v=20261018-story-fork-1';
-import { migrateStoryDescriptionInputs, migrateSerializedStoryDescriptionInputs } from './h3c_story_inputs.mjs?v=20261003-story-inputs-2';
-import { showOwnElement } from './h3c_dom_widget.mjs?v=20260927-7';
-import * as story from './h3c_story_model.mjs?v=20261106-safe-duration-3';
-import { StoryPanel } from './h3c_story_panel.mjs?v=20261104-story-groups-2';
-import { StoryLibrary, isWiringConflict, saveBeforeNewProject, savedStoryContent } from './h3c_story_library.mjs?v=20261104-story-groups-1';
-import { exportStory, importStory, downloadStory } from './h3c_story_archive.mjs?v=20261014-story-library-1';
-import { parseState, serialize } from './h3c_timeline_model.mjs?v=20261106-safe-duration-3';
+import { mountSavedState } from './h3c_saved_state.mjs?v=20261107-safe-duration-4';
+import { migrateStoryDescriptionInputs, migrateSerializedStoryDescriptionInputs } from './h3c_story_inputs.mjs?v=20261107-safe-duration-4';
+import { showOwnElement } from './h3c_dom_widget.mjs?v=20261107-safe-duration-4';
+import * as story from './h3c_story_model.mjs?v=20261107-safe-duration-4';
+import { StoryPanel } from './h3c_story_panel.mjs?v=20261107-safe-duration-4';
+import { StoryLibrary, isWiringConflict, saveBeforeNewProject, savedStoryContent } from './h3c_story_library.mjs?v=20261107-safe-duration-4';
+import { exportStory, importStory, downloadStory } from './h3c_story_archive.mjs?v=20261107-safe-duration-4';
+import { parseState, serialize } from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
 
-import {exportGeneration,importGeneration,downloadGeneration,generationControl,setGenerationControl} from './h3c_generation_archive.mjs?v=20261014-reference-thumbnails-1';
-import {captureRecipe,hasVideoOutput as compiledVideoOutput} from './h3c_stills.mjs?v=20261105-ph3-autogrow-1';
-import {parseJSON,stringifyJSON} from './h3c_project.mjs?v=20261031-held-jobs-1';
+import {exportGeneration,importGeneration,downloadGeneration,generationControl,setGenerationControl} from './h3c_generation_archive.mjs?v=20261107-safe-duration-4';
+import {captureRecipe,hasVideoOutput as compiledVideoOutput} from './h3c_stills.mjs?v=20261107-safe-duration-4';
+import {parseJSON,stringifyJSON} from './h3c_project.mjs?v=20261107-safe-duration-4';
 
 const NODE_TYPE = 'H3C_Story';
 const WRITE_URL = '/h3c/story/write';
@@ -209,20 +209,24 @@ class StoryHost {
     for (const name of ['base_url', 'story_base_url', 'pictures', 'vision_base_url', 'vision_model']) this.chain(findWidget(node, name), () => this.showTarget());
     this.hook('onConnectionsChange', () => { this.showTarget(); this.relayout(true); });
     this.hook('onConfigure', () => {
-      retireWritingMode(this.node);
-      hide(this.widget);
-      hide(findWidget(this.node, 'template'));
-      hide(findWidget(this.node, 'idea_images'));
-      this.fixThinking();
-      this.showState();
-      this.showTarget();
-      setTimeout(() => {
-        showOwnElement(node, panel.root, '.h3cs-root', app.canvas?.graph);
-        if (this.imagesWidget) showOwnElement(node, panel.settingsEl, '.h3cs-settings', app.canvas?.graph);
-        // A loading workflow can configure this node before the Timeline it feeds gets its links back.
+      try {
+        retireWritingMode(this.node);
+        hide(this.widget);
+        hide(findWidget(this.node, 'template'));
+        hide(findWidget(this.node, 'idea_images'));
+        this.fixThinking();
+        this.showState();
         this.showTarget();
-        this.resume();
-      }, 0);
+        setTimeout(() => {
+          showOwnElement(node, panel.root, '.h3cs-root', app.canvas?.graph);
+          if (this.imagesWidget) showOwnElement(node, panel.settingsEl, '.h3cs-settings', app.canvas?.graph);
+          // A loading workflow can configure this node before the Timeline it feeds gets its links back.
+          this.showTarget();
+          this.resume();
+        }, 0);
+      } catch (err) {
+        console.error('[H3C_Story] Error configuring story node:', err);
+      }
     });
     // Undo, redo, a tab switch and loading a workflow remove every node; the Write goes on for the node that comes
     // back.
@@ -998,9 +1002,13 @@ app.registerExtension({
     const onNodeCreated = nodeType.prototype.onNodeCreated;
     nodeType.prototype.onNodeCreated = function (...args) {
       const result = onNodeCreated?.apply(this, args);
-      if (!findWidget(this, 'state')) return result;
-      const host = new StoryHost(this, {...nodeData.input?.required, ...nodeData.input?.optional});
-      this.setSize?.([Math.max(this.size?.[0] ?? 0, 420), Number(this.computeSize?.()?.[1]) || host.panel.height()]);
+      try {
+        if (!findWidget(this, 'state')) return result;
+        const host = new StoryHost(this, {...nodeData.input?.required, ...nodeData.input?.optional});
+        this.setSize?.([Math.max(this.size?.[0] ?? 0, 420), Number(this.computeSize?.()?.[1]) || host.panel.height()]);
+      } catch (err) {
+        console.error('[H3C_Story] Error onNodeCreated:', err);
+      }
       return result;
     };
   },

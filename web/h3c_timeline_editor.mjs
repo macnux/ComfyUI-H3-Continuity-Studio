@@ -1,23 +1,23 @@
 // The H3 Timeline editor: a track of boxes, the selected box and the shared prompt.
 // Plain DOM without ComfyUI imports; the host object connects it to the node.
-import { MentionCard, MentionLayer } from './h3c_mentions.mjs?v=20261011-reference-preparation-1';
-import { promptSections, promptShots, writePromptSections } from './h3c_prompt_sections.mjs?v=20261010-reference-workspace-1';
-import * as model from './h3c_timeline_model.mjs?v=20261106-safe-duration-3';
-import { AudioLanes } from './h3c_audio_lanes.mjs?v=20261106-safe-duration-3';
-import { shotFrames, frameTargets, syncTargets, acceptedGuideFrames, endpointGuide, adoptEndpointGuides } from './h3c_shot_preview.mjs?v=20261105-still-quality-1';
-import { FrameImages, targetLabel, imageDrop } from './h3c_frame_images.mjs?v=20261105-still-quality-1';
-import { splitBox, splitTiming } from './h3c_shot_split.mjs?v=20261106-safe-duration-3';
-import { fillReferenceSwitches } from './h3c_reference_switches.mjs?v=20261010-image-descriptions-1';
-import { ReferenceReplacements } from './h3c_reference_replacements.mjs?v=20261011-reference-preparation-1';
-import { fillPicturePicker, mentionedReferences, referenceChip } from './h3c_reference_pictures.mjs?v=20261010-reference-workspace-1';
-import { CastPage } from './h3c_cast.mjs?v=20261106-safe-duration-3';
-import { PicturesPanel, highestSlot } from './h3c_pictures.mjs?v=20261011-reference-preparation-1';
-import { CheckPanel } from './h3c_check.mjs?v=20261106-safe-duration-3';
-import { BridgePanel, bridgeLine } from './h3c_bridges.mjs?v=20261106-safe-duration-3';
-import { DialoguePanel } from './h3c_dialogue.mjs?v=20261106-safe-duration-3';
-import { ChainSettings } from './h3c_chain_settings.mjs?v=20261104-chain-settings-1';
-import { exportedVideo } from './h3c_partial_video.mjs?v=20261104-partial-video-1';
-import { MAX_TAKES, TakesPanel, followNote, renderLabel } from './h3c_takes.mjs?v=20261106-safe-duration-3';
+import { MentionCard, MentionLayer } from './h3c_mentions.mjs?v=20261107-safe-duration-4';
+import { promptSections, promptShots, writePromptSections } from './h3c_prompt_sections.mjs?v=20261107-safe-duration-4';
+import * as model from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
+import { AudioLanes } from './h3c_audio_lanes.mjs?v=20261107-safe-duration-4';
+import { shotFrames, frameTargets, syncTargets, acceptedGuideFrames, endpointGuide, adoptEndpointGuides } from './h3c_shot_preview.mjs?v=20261107-safe-duration-4';
+import { FrameImages, targetLabel, imageDrop } from './h3c_frame_images.mjs?v=20261107-safe-duration-4';
+import { splitBox, splitTiming } from './h3c_shot_split.mjs?v=20261107-safe-duration-4';
+import { fillReferenceSwitches } from './h3c_reference_switches.mjs?v=20261107-safe-duration-4';
+import { ReferenceReplacements } from './h3c_reference_replacements.mjs?v=20261107-safe-duration-4';
+import { fillPicturePicker, mentionedReferences, referenceChip } from './h3c_reference_pictures.mjs?v=20261107-safe-duration-4';
+import { CastPage } from './h3c_cast.mjs?v=20261107-safe-duration-4';
+import { PicturesPanel, highestSlot } from './h3c_pictures.mjs?v=20261107-safe-duration-4';
+import { CheckPanel } from './h3c_check.mjs?v=20261107-safe-duration-4';
+import { BridgePanel, bridgeLine } from './h3c_bridges.mjs?v=20261107-safe-duration-4';
+import { DialoguePanel } from './h3c_dialogue.mjs?v=20261107-safe-duration-4';
+import { ChainSettings } from './h3c_chain_settings.mjs?v=20261107-safe-duration-4';
+import { exportedVideo } from './h3c_partial_video.mjs?v=20261107-safe-duration-4';
+import { MAX_TAKES, TakesPanel, followNote, renderLabel } from './h3c_takes.mjs?v=20261107-safe-duration-4';
 
 const STYLE_ID = 'h3ct-style';
 const PANEL_HEIGHT = 470;

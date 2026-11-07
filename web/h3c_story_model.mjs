@@ -1,6 +1,6 @@
 // H3 Story's saved state, applying a Write result to the Timeline, and Undo. Pure: no DOM and no ComfyUI.
-import { FPS, normalize, totalFrames } from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
-import { validateTimedText, textClock } from './h3c_timed_text.mjs?v=20261011-reference-preparation-1';
+import { FPS, normalize, totalFrames } from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
+import { validateTimedText, textClock } from './h3c_timed_text.mjs?v=20261107-safe-duration-4';
 
 export const VERSION = 1;
 export const DROPPED = 'The Timeline got boxes while Write worked, so the planned boxes were dropped.';
@@ -289,7 +289,7 @@ export function resultMessage({ applied, planned, failed = 0, staleText }, timel
   if (failed) return `Incomplete: wrote ${applied} of ${applied + failed} box prompts. ${failed} `
     + `${failed === 1 ? 'box needs' : 'boxes need'} another Write; see Notes for the reasons.`;
   if (!planned) return applied === 1 ? 'Wrote 1 box prompt.' : `Wrote ${applied} box prompts.`;
-  const seconds = (Number(totalFrames(timeline) ?? 0) / (FPS || 24)).toFixed(1);
+  const seconds = ((Number(totalFrames(timeline)) || 0) / (FPS || 24)).toFixed(1);
   const boxes = planned === 1 ? `Planned 1 box (${seconds} s)` : `Planned ${planned} boxes (${seconds} s)`;
   if (!applied) return `${boxes} without prompts.`;
   if (applied < planned) return `${boxes} and wrote ${applied} of their prompts.`;

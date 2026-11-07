@@ -1,5 +1,5 @@
-import {referencePools, referenceType, referenceMediaType, setReferenceReplacement, restoreReferenceReplacement, switchReference, applyImageDescription, effectiveRefmods} from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
-import {referenceChip} from './h3c_reference_pictures.mjs?v=20261010-reference-workspace-1';
+import {referencePools, referenceType, referenceMediaType, setReferenceReplacement, restoreReferenceReplacement, switchReference, applyImageDescription, effectiveRefmods} from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
+import {referenceChip} from './h3c_reference_pictures.mjs?v=20261107-safe-duration-4';
 
 const ACCEPT = {image:'image/*',video:'video/*,.mkv,.mov,.webm,.mp4',audio:'audio/*,.wav,.flac,.mp3,.ogg,.m4a',video_audio:'audio/*,video/*,.wav,.flac,.mp3,.mp4'};
 const element = (tag,text) => { const node=document.createElement(tag); if(text)node.textContent=text; return node; };

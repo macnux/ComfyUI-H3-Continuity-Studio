@@ -1,7 +1,7 @@
-import { parseJSON, stringifyJSON } from './h3c_project.mjs?v=20261031-held-jobs-1';
-import { settledPreparation } from './h3c_reference_preparation.mjs?v=20261014-reference-thumbnails-1';
-import { applyResult, parseStoryState, serializeStoryState } from './h3c_story_model.mjs?v=20261106-safe-duration-3';
-import { reconcileSceneAnchors } from './h3c_still_scene.mjs?v=20261011-reference-preparation-1';
+import { parseJSON, stringifyJSON } from './h3c_project.mjs?v=20261107-safe-duration-4';
+import { settledPreparation } from './h3c_reference_preparation.mjs?v=20261107-safe-duration-4';
+import { applyResult, parseStoryState, serializeStoryState } from './h3c_story_model.mjs?v=20261107-safe-duration-4';
+import { reconcileSceneAnchors } from './h3c_still_scene.mjs?v=20261107-safe-duration-4';
 
 const CONTENT_FIELDS = new Set(['name', 'timeline', 'idea', 'state', 'idea_images', 'template']);
 

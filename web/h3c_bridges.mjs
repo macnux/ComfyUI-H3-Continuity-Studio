@@ -3,7 +3,7 @@
 // so the video keeps its length and recordings stay in place. Plain DOM without ComfyUI imports; the editor's host
 // queues the run, and Play asks the Studio to show a take or candidate. Every region, protection and choice comes from
 // the Timeline's status.
-import * as model from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
+import * as model from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
 
 const STYLE_ID = 'h3cb-style';
 const CSS = `
@@ -66,7 +66,7 @@ function injectStyle() {
 }
 
 const sentence = (note) => `${note.charAt(0).toUpperCase()}${note.slice(1)}.`;
-const clock = (frames) => (Number(frames ?? 0) / (model.FPS || 24)).toFixed(2);
+const clock = (frames) => ((Number(frames) || 0) / (model.FPS || 24)).toFixed(2);
 const span = (start, end) => `${clock(start)}–${clock(end)} s`;
 
 // The replacement panel's state line for its status `item`; `problem` is the editor's own reason, first.

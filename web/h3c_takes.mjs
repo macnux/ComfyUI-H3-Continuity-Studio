@@ -1,8 +1,8 @@
 // The Box page's takes: the take in use and the saved takes of the selected box, then of the bridge before it, with
 // Play, Use and Delete, Delete other takes and Delete unusable takes in this sequence. Plain DOM without ComfyUI
 // imports; the editor's host sends the requests, and Play asks the Studio to show the take.
-import * as model from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
-import { parseJSON, stringifyJSON, seedValue } from './h3c_project.mjs?v=20261031-held-jobs-1';
+import * as model from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
+import { parseJSON, stringifyJSON, seedValue } from './h3c_project.mjs?v=20261107-safe-duration-4';
 
 export const MAX_TAKES = 10;
 const TAKES_URLS = {

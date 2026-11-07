@@ -1,9 +1,9 @@
-import {ReferencePreparationPanel} from './h3c_reference_preparation.mjs?v=20261014-reference-thumbnails-1';
+import {ReferencePreparationPanel} from './h3c_reference_preparation.mjs?v=20261107-safe-duration-4';
 // The Studio's Cast page: the Story bible's characters, places and props, and the boxes each appears in. Every change
 // goes through the bible route, which compiles the prompts, and lands as one Timeline edit.
-import * as model from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
-import { fillPicturePicker, referenceChip } from './h3c_reference_pictures.mjs?v=20261010-reference-workspace-1';
-import { LONG_CLIP_SECONDS, dropVoiceClip, freeVoiceSlot, setVoiceClip, voiceClipOf } from './h3c_voices.mjs?v=20261011-reference-preparation-1';
+import * as model from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
+import { fillPicturePicker, referenceChip } from './h3c_reference_pictures.mjs?v=20261107-safe-duration-4';
+import { LONG_CLIP_SECONDS, dropVoiceClip, freeVoiceSlot, setVoiceClip, voiceClipOf } from './h3c_voices.mjs?v=20261107-safe-duration-4';
 
 export const BUILD_SENTENCE = 'Build bible links each clip’s subjects to characters, places and props. Nothing that renders changes.';
 const STALE = 'The Timeline changed while the bible was updating; try again.';
@@ -967,7 +967,7 @@ export class CastPage {
         () => this.togglePlay(clip));
       play.dataset.key = 'voice-clip-play';
       actions.append(el('span', 'h3cc-clip', (typeof length === 'number' && Number.isFinite(length))
-        ? `${clip?.file?.filename || 'Audio'} · ${length.toFixed(1)} s`
+        ? `${clip?.file?.filename || 'Audio'} · ${(Number(length) || 0).toFixed(1)} s`
         : (clip?.file?.filename || 'Audio')), play);
     }
     const title = clip ? `Upload another file for ${entity.name}’s voice; the clips keep @${clip.slot}`

@@ -1,5 +1,5 @@
-import {stringifyJSON,seedValue} from './h3c_project.mjs?v=20261031-held-jobs-1';
-import {ImageJobClient} from './h3c_image_jobs.mjs?v=20261011-reference-preparation-1';
+import {stringifyJSON,seedValue} from './h3c_project.mjs?v=20261107-safe-duration-4';
+import {ImageJobClient} from './h3c_image_jobs.mjs?v=20261107-safe-duration-4';
 export const REFERENCE_CATEGORIES = ['cast','locations','props'];
 
 export function preparationOf(state) {

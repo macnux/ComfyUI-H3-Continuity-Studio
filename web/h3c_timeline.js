@@ -1,28 +1,28 @@
-import {ReferenceClient,applyReferenceApproval,requiredAssets,preparationOf} from './h3c_reference_preparation.mjs?v=20261014-reference-thumbnails-1';
-import {generationControl,setGenerationControl} from './h3c_generation_archive.mjs?v=20261014-reference-thumbnails-1';
+import {ReferenceClient,applyReferenceApproval,requiredAssets,preparationOf} from './h3c_reference_preparation.mjs?v=20261107-safe-duration-4';
+import {generationControl,setGenerationControl} from './h3c_generation_archive.mjs?v=20261107-safe-duration-4';
 // Mounts the H3 Timeline face on H3C_Timeline nodes, edits the Timeline in the Studio, and keeps its status in sync
 // with the server. ComfyUI permits caching .mjs helpers. Bump their ?v= revision together across web/ when they change.
-import { freshProject } from './h3c_new_project.mjs?v=20261007-new-project-in-place-1';
-import { saveBeforeNewProject } from './h3c_story_library.mjs?v=20261104-story-groups-1';
+import { freshProject } from './h3c_new_project.mjs?v=20261107-safe-duration-4';
+import { saveBeforeNewProject } from './h3c_story_library.mjs?v=20261107-safe-duration-4';
 import { app } from '../../scripts/app.js';
-import {syncImageOutputs,compileImageOutputs} from './h3c_timeline_images.mjs?v=20261012-picture-outputs-1';
+import {syncImageOutputs,compileImageOutputs} from './h3c_timeline_images.mjs?v=20261107-safe-duration-4';
 import { api } from '../../scripts/api.js';
-import { mountSavedState } from './h3c_saved_state.mjs?v=20261018-story-fork-1';
-import { showOwnElement } from './h3c_dom_widget.mjs?v=20260927-7';
-import { WATCH_EVENTS, idleWatch, progressText, watchEvent } from './h3c_render_watch.mjs?v=20261004-studio-1';
-import { studio } from './h3c_studio.mjs?v=20261105-viewer-selection-1';
-import { FACE_HEIGHT, TimelineFace } from './h3c_timeline_face.mjs?v=20261013-native-advanced-1';
-import { TimelineEditor } from './h3c_timeline_editor.mjs?v=20261106-safe-duration-3';
-import { referenceFile, referenceSource, referencePools, referenceType, effectiveRefmods, parseState, serialize } from './h3c_timeline_model.mjs?v=20261106-safe-duration-3';
-import {referenceImageFile} from './h3c_reference_sources.mjs?v=20261019-x2-reference-source-1';
-import { pictureRefs } from './h3c_pictures.mjs?v=20261011-reference-preparation-1';
-import { voiceRefs } from './h3c_voices.mjs?v=20261011-reference-preparation-1';
-import {captureRecipe,captureTimelineId,captureStillBody,recipeControls,StillClient,isolateVideoPrompt,videoOutputs,hasVideoOutput as compiledVideoOutput} from './h3c_stills.mjs?v=20261105-ph3-autogrow-1';
-import {boundarySnapshot} from './h3c_frame_images.mjs?v=20261105-still-quality-1';
-import {stillPromptSource,sameStillPromptSource} from './h3c_still_prompt_preparation.mjs?v=20261012-still-prompts-2';
-import { TakesClient } from './h3c_takes.mjs?v=20261106-safe-duration-3';
-import {ProjectSession, forkProject, parseJSON, stringifyJSON} from './h3c_project.mjs?v=20261031-held-jobs-1';
-import {TimelineHistory, editingSnapshot, withLiveReceipts} from './h3c_history.mjs?v=20261104-history-1';
+import { mountSavedState } from './h3c_saved_state.mjs?v=20261107-safe-duration-4';
+import { showOwnElement } from './h3c_dom_widget.mjs?v=20261107-safe-duration-4';
+import { WATCH_EVENTS, idleWatch, progressText, watchEvent } from './h3c_render_watch.mjs?v=20261107-safe-duration-4';
+import { studio } from './h3c_studio.mjs?v=20261107-safe-duration-4';
+import { FACE_HEIGHT, TimelineFace } from './h3c_timeline_face.mjs?v=20261107-safe-duration-4';
+import { TimelineEditor } from './h3c_timeline_editor.mjs?v=20261107-safe-duration-4';
+import { referenceFile, referenceSource, referencePools, referenceType, effectiveRefmods, parseState, serialize } from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
+import {referenceImageFile} from './h3c_reference_sources.mjs?v=20261107-safe-duration-4';
+import { pictureRefs } from './h3c_pictures.mjs?v=20261107-safe-duration-4';
+import { voiceRefs } from './h3c_voices.mjs?v=20261107-safe-duration-4';
+import {captureRecipe,captureTimelineId,captureStillBody,recipeControls,StillClient,isolateVideoPrompt,videoOutputs,hasVideoOutput as compiledVideoOutput} from './h3c_stills.mjs?v=20261107-safe-duration-4';
+import {boundarySnapshot} from './h3c_frame_images.mjs?v=20261107-safe-duration-4';
+import {stillPromptSource,sameStillPromptSource} from './h3c_still_prompt_preparation.mjs?v=20261107-safe-duration-4';
+import { TakesClient } from './h3c_takes.mjs?v=20261107-safe-duration-4';
+import {ProjectSession, forkProject, parseJSON, stringifyJSON} from './h3c_project.mjs?v=20261107-safe-duration-4';
+import {TimelineHistory, editingSnapshot, withLiveReceipts} from './h3c_history.mjs?v=20261107-safe-duration-4';
 
 const NODE_TYPE = 'H3C_Timeline';
 const STATUS_URL = '/h3c/timeline/status';
@@ -256,12 +256,16 @@ export class TimelineHost {
     face.mountWidgets(node);
     for (const name of ['name', ...SETTINGS]) this.chain(findWidget(node, name), () => this.settingChanged(name));
     this.hook('onConfigure', () => {
-      this.configureProject();
-      hide(this.widget);
-      editor.load();
-      this.schedule(0);
-      this.fit();
-      setTimeout(() => showOwnElement(node, face.root, '.h3ct-face', app.canvas?.graph), 0);
+      try {
+        this.configureProject();
+        hide(this.widget);
+        editor.load();
+        this.schedule(0);
+        this.fit();
+        setTimeout(() => showOwnElement(node, face.root, '.h3ct-face', app.canvas?.graph), 0);
+      } catch (err) {
+        console.error('[H3C_Timeline] Error configuring timeline node:', err);
+      }
     });
     this.hook('onConnectionsChange', () => {
       editor.render();
@@ -1153,12 +1157,16 @@ app.registerExtension({
     const onNodeCreated = nodeType.prototype.onNodeCreated;
     nodeType.prototype.onNodeCreated = function (...args) {
       const result = onNodeCreated?.apply(this, args);
-      if (!findWidget(this, 'timeline')) return result;
-      const host = new TimelineHost(this);
-      host.editor.startIfEmpty();
-      host.history.reset(host.historyState());
-      this.setSize?.([Math.max(this.size?.[0] ?? 0, 420), Number(this.computeSize?.()?.[1]) || FACE_HEIGHT]);
-      host.schedule(0);
+      try {
+        if (!findWidget(this, 'timeline')) return result;
+        const host = new TimelineHost(this);
+        host.editor.startIfEmpty();
+        host.history.reset(host.historyState());
+        this.setSize?.([Math.max(this.size?.[0] ?? 0, 420), Number(this.computeSize?.()?.[1]) || FACE_HEIGHT]);
+        host.schedule(0);
+      } catch (err) {
+        console.error('[H3C_Timeline] Error onNodeCreated:', err);
+      }
       return result;
     };
   },

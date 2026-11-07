@@ -1,14 +1,14 @@
 // Marker images own editable still prompts, candidates and the acceptance transaction. Queue recovery belongs to the host.
-import {frameTargets, buildStillPrompt, applyFrameGuide, endpointGuide} from './h3c_shot_preview.mjs?v=20261105-still-quality-1';
-import {parseState, serialize} from './h3c_timeline_model.mjs?v=20261104-flf-audio-1';
-import {StillPromptPreparation,preparedStillPrompt,setPreparedStillPrompt} from './h3c_still_prompt_preparation.mjs?v=20261012-still-prompts-2';
+import {frameTargets, buildStillPrompt, applyFrameGuide, endpointGuide} from './h3c_shot_preview.mjs?v=20261107-safe-duration-4';
+import {parseState, serialize} from './h3c_timeline_model.mjs?v=20261107-safe-duration-4';
+import {StillPromptPreparation,preparedStillPrompt,setPreparedStillPrompt} from './h3c_still_prompt_preparation.mjs?v=20261107-safe-duration-4';
 
-import {seedValue, stringifyJSON} from './h3c_project.mjs?v=20261031-held-jobs-1';
+import {seedValue, stringifyJSON} from './h3c_project.mjs?v=20261107-safe-duration-4';
 
 const key = target => target.kind === 'shot' ? `shot:${target.shot}` : target.kind;
 export const targetLabel = target => target.kind === 'shot' ? `Shot ${target.shot}` : target.kind === 'last' ? 'Last' : 'First';
 const itemTarget = item => item.target ?? (item.shot === 1 ? {kind:'first'} : {kind:'shot',shot:item.shot});
-import {acceptSceneAnchor,selectSceneAnchor,sceneAnchor} from './h3c_still_scene.mjs?v=20261011-reference-preparation-1';
+import {acceptSceneAnchor,selectSceneAnchor,sceneAnchor} from './h3c_still_scene.mjs?v=20261107-safe-duration-4';
 
 const guideLabel = (state, guide) => {
   const index=state.boxes.findIndex(box=>box.id===guide.box);
