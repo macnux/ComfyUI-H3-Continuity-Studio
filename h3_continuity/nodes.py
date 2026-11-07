@@ -628,7 +628,7 @@ def write_previews(folder, manifest, candidate, crf, spliced=(), soundtrack=()):
     for kind, windows in versions.items():
         file = f"{candidate['stem']}_{kind}.mp4"
         written, note = media.build_full_video(os.path.join(folder, file), _video_windows(folder, windows),
-                                               heard if soundtrack else _generated_audio(folder, windows), crf)
+                                               mix_audio(heard, _generated_audio(folder, windows), secondary_gain=0.30) if soundtrack else _generated_audio(folder, windows), crf)
         if written is None:
             return f"No preview: {note}"
         files[kind] = file
@@ -637,10 +637,41 @@ def write_previews(folder, manifest, candidate, crf, spliced=(), soundtrack=()):
     return ""
 
 
+def mix_audio(primary, secondary, secondary_gain=0.30):
+    """Mixes a primary track (soundtrack / narration at 1.0) with an ambient secondary track
+    (generated Foley / soundscape at secondary_gain)."""
+    if primary is None:
+        return secondary
+    if secondary is None:
+        return primary
+    p_wave, p_rate = primary
+    s_wave, s_rate = secondary
+    if p_wave is None:
+        return secondary
+    if s_wave is None:
+        return primary
+    p_wave = p_wave.float().cpu()
+    s_wave = s_wave.float().cpu()
+    if s_rate != p_rate:
+        import comfy.audio
+        s_wave = comfy.audio.resample(s_wave, s_rate, p_rate)
+    channels = max(p_wave.shape[0], s_wave.shape[0])
+    if p_wave.shape[0] < channels:
+        p_wave = p_wave.repeat(channels, 1)
+    if s_wave.shape[0] < channels:
+        s_wave = s_wave.repeat(channels, 1)
+
+    max_len = max(p_wave.shape[1], s_wave.shape[1])
+    out = torch.zeros(channels, max_len)
+    out[:, :p_wave.shape[1]] += p_wave
+    out[:, :s_wave.shape[1]] += s_wave * secondary_gain
+    return out.clamp_(-1.0, 1.0), p_rate
+
+
 def rebuild_full_video(folder, name, manifest, crf, spliced=(), soundtrack=(), *, managed_owner=None, replaced=()):
     """Joins the saved segments, each `spliced` bridge before the segment of its box and each `replaced` candidate in
-    place of the frames it covers. With `soundtrack` clips (`audio_tracks.marked`), it plays them instead of the
-    segments' audio, on the Timeline's clock: only spliced bridges add time."""
+    place of the frames it covers. With `soundtrack` clips (`audio_tracks.marked`), it plays them mixed with the
+    segments' generated audio (soundscape / Foley), on the Timeline's clock: only spliced bridges add time."""
     with SEQUENCE_LOCK:
         from .timeline_api.service import authorize_sequence
         authorize_sequence(name, managed_owner, "full_video")
@@ -668,9 +699,10 @@ def rebuild_full_video(folder, name, manifest, crf, spliced=(), soundtrack=(), *
             return _not_rebuilt(error)
         if soundtrack:
             try:
-                audio = audio_tracks.soundtrack_audio(soundtrack, [(count, inserted) for _, _, count, inserted in ordered])
+                st_audio = audio_tracks.soundtrack_audio(soundtrack, [(count, inserted) for _, _, count, inserted in ordered])
             except ValueError as error:
                 return _not_rebuilt(error)
+            audio = mix_audio(st_audio, _generated_audio(folder, ordered), secondary_gain=0.30)
         else:
             audio = _generated_audio(folder, ordered)
         written, note = media.build_full_video(os.path.join(folder, f"{name}_full.mp4"),
